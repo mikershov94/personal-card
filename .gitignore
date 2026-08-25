@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Generated output
+dist/
+coverage/
+*.tsbuildinfo
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+
+# IDE
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
