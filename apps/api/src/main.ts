@@ -10,7 +10,6 @@ async function bootstrap() {
     throw new Error(`Invalid PORT value. Expected an integer.`);
   }
 
-  console.log(port);
   const app = await NestFactory.create(AppModule);
   await app.listen(port, '0.0.0.0');
 }
