@@ -2,6 +2,16 @@
 	"name": "personal-card",
 	"version": "1.0.0",
 	"private": true,
-	"scripts": {},
+	"packageManager": "pnpm@11.8.0",
+	"scripts": {
+		"build": "pnpm --filter api build",
+		"format": "pnpm --filter api format",
+		"format:check": "pnpm --filter api format:check",
+		"typecheck": "pnpm --filter api typecheck",
+		"lint": "pnpm --filter api lint",
+		"lint:fix": "pnpm --filter api lint:fix",
+		"test": "pnpm --filter api test",
+		"test:e2e": "pnpm --filter api test:e2e"
+	},
 	"author": "Michael E. Ershov"
 }
