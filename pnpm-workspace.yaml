@@ -1,4 +1,8 @@
 packages:
   - "apps/*"
 allowBuilds:
+  "@apollo/protobufjs": false
   unrs-resolver: true
+peerDependencyRules:
+  allowedVersions:
+    "@apollo/server-plugin-landing-page-graphql-playground>@apollo/server": "5"
