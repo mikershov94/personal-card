@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
-import { InquiriesController } from './inquiries.controller';
+
+import { InquiriesResolver } from './inquiries.resolver';
 
 @Module({
-  controllers: [InquiriesController]
+  providers: [InquiriesResolver],
 })
 export class InquiriesModule {}
