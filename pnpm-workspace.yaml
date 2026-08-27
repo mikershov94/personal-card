@@ -2,6 +2,8 @@ packages:
   - "apps/*"
 allowBuilds:
   "@apollo/protobufjs": false
+  "@prisma/engines": true
+  prisma: true
   unrs-resolver: true
 peerDependencyRules:
   allowedVersions:
