@@ -19,6 +19,9 @@ FROM dependencies AS development
 
 COPY apps/api ./apps/api
 
+RUN DATABASE_URL=postgresql://prisma:prisma@localhost:5432/prisma \
+    pnpm --filter api db:generate
+
 EXPOSE 3000
 
 CMD ["pnpm", "--filter", "api", "start:dev"]
