@@ -4,7 +4,7 @@ import { CreateInquiryDto } from './dto/create-inquiry.dto';
 import { InquiryEntity } from './entities/inquiry.entity';
 import { InquiriesService } from './inquiries.service';
 
-@Resolver()
+@Resolver(() => InquiryEntity)
 export class InquiriesResolver {
     constructor(private readonly inquiriesService: InquiriesService) {}
 
