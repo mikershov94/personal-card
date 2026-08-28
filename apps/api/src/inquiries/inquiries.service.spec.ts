@@ -3,7 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CreateInquiryDto } from './dto/create-inquiry.dto';
 import { InquiryEntity } from './entities/inquiry.entity';
 import { InquiriesService } from './inquiries.service';
-import { InquiriresRepository } from './repositories/inquiries.repository';
+import { InquiriesRepository } from './repositories/inquiries.repository';
 
 describe('InquiriesService', () => {
     let service: InquiriesService;
@@ -19,7 +19,7 @@ describe('InquiriesService', () => {
             providers: [
                 InquiriesService,
                 {
-                    provide: InquiriresRepository,
+                    provide: InquiriesRepository,
                     useValue: inquiriesRepositoryMock,
                 },
             ],
