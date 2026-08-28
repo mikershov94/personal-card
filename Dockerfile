@@ -13,7 +13,9 @@ FROM base AS dependencies
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/api/package.json ./apps/api/package.json
 
-RUN pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store,sharing=locked \
+    pnpm config set store-dir /pnpm/store && \
+    pnpm install --frozen-lockfile
 
 FROM dependencies AS development
 
@@ -35,7 +37,9 @@ FROM base AS production-dependencies
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/api/package.json ./apps/api/package.json
 
-RUN pnpm install --prod --frozen-lockfile
+RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store,sharing=locked \
+    pnpm config set store-dir /pnpm/store && \
+    pnpm install --prod --frozen-lockfile
 
 
 #--------------------------------------------------------------
@@ -59,9 +63,21 @@ COPY --from=build --chown=node:node \
     /workspace/apps/api/dist \
     ./apps/api/dist
 
+COPY --from=build --chown=node:node \
+    /workspace/apps/api/prisma \
+    ./apps/api/prisma
+
+COPY --from=build --chown=node:node \
+    /workspace/apps/api/prisma.config.ts \
+    ./apps/api/prisma.config.ts
+
+COPY --chown=node:node docker/api-entrypoint.sh ./docker/api-entrypoint.sh
+
+RUN chmod +x ./docker/api-entrypoint.sh
+
 USER node
 
 EXPOSE 3000
 
-CMD ["node", "apps/api/dist/main.js"]
+ENTRYPOINT ["./docker/api-entrypoint.sh"]
 
