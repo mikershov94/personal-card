@@ -6,6 +6,7 @@ import { AppController } from './app.controller';
 import { AppResolver } from './app.resolver';
 import { AppService } from './app.service';
 import { InquiriesModule } from './inquiries/inquiries.module';
+import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { InquiriesModule } from './inquiries/inquiries.module';
       sortSchema: true,
     }),
     InquiriesModule,
+    PrismaModule,
   ],
   controllers: [AppController],
   providers: [AppResolver, AppService],

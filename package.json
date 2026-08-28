@@ -10,6 +10,8 @@
 		"typecheck": "pnpm --filter api typecheck",
 		"lint": "pnpm --filter api lint",
 		"lint:fix": "pnpm --filter api lint:fix",
+		"db:format": "pnpm --filter api db:format",
+		"db:validate": "pnpm --filter api db:validate",
 		"test": "pnpm --filter api test",
 		"test:e2e": "pnpm --filter api test:e2e"
 	},
