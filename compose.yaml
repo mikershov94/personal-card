@@ -6,9 +6,8 @@ services:
             target: development
         ports:
             - '3000:3000'
-        # environments:
-        # DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
-        # DATABASE_URL: ${DATABSE_URL}
+        environment:
+            DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
         depends_on:
             postgres:
                 condition: service_healthy
