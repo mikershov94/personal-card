@@ -7,12 +7,13 @@ import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
     {
-        ignores: ['eslint.config.mjs'],
+        ignores: ['**/node_modules/**', '**/dist/**', '**/coverage/**', '**/generated/**'],
     },
     eslint.configs.recommended,
     ...tseslint.configs.recommendedTypeChecked,
     eslintPluginPrettierRecommended,
     {
+        files: ['apps/api/**/*.ts'],
         languageOptions: {
             globals: {
                 ...globals.node,
@@ -43,7 +44,7 @@ export default tseslint.config(
         },
     },
     {
-        files: ['**/*.spec.ts', '**/*.test.ts', 'test/**/*.ts'],
+        files: ['**/*.spec.ts', '**/*.test.ts', '**/test/**/*.ts'],
         rules: {
             'no-console': 'warn',
             '@typescript-eslint/no-unused-vars': 'warn',

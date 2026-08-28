@@ -6,6 +6,7 @@ dist/
 coverage/
 *.tsbuildinfo
 .pnpm-store/
+apps/api/src/generated
 
 # Environment variables
 .env
