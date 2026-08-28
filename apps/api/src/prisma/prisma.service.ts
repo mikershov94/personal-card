@@ -5,21 +5,21 @@ import { PrismaClient } from '../generated/prisma/client';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleDestroy {
-  constructor() {
-    const connectionString = process.env.DATABASE_URL;
+    constructor() {
+        const connectionString = process.env.DATABASE_URL;
 
-    if (!connectionString) {
-      throw new Error('Переменная окружения DATABASE_URL не определена');
+        if (!connectionString) {
+            throw new Error('Переменная окружения DATABASE_URL не определена');
+        }
+
+        const adapter = new PrismaPg({
+            connectionString,
+        });
+
+        super({ adapter });
     }
 
-    const adapter = new PrismaPg({
-      connectionString,
-    });
-
-    super({ adapter });
-  }
-
-  async onModuleDestroy(): Promise<void> {
-    await this.$disconnect();
-  }
+    async onModuleDestroy(): Promise<void> {
+        await this.$disconnect();
+    }
 }
