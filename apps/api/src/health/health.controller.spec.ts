@@ -53,7 +53,7 @@ describe('HealthController', () => {
         });
 
         it('должен пробросить ошибку, если проверка готовности завершилась неудачно', async () => {
-            const error = new ServiceUnavailableException('База данных недоступна>');
+            const error = new ServiceUnavailableException('База данных недоступна');
             healthServiceMock.checkReady.mockRejectedValue(error);
 
             await expect(controller.checkReady()).rejects.toBe(error);
