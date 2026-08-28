@@ -6,6 +6,12 @@ services:
             target: development
         ports:
             - '3000:3000'
+        # environments:
+        # DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
+        # DATABASE_URL: ${DATABSE_URL}
+        depends_on:
+            postgres:
+                condition: service_healthy
         volumes:
             - ./apps/api/src:/workspace/apps/api/src
             - ./apps/api/prisma:/workspace/apps/api/prisma
