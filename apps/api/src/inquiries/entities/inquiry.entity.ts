@@ -11,7 +11,7 @@ export class InquiryEntity {
     @Field()
     email!: string;
 
-    @Field({ nullable: true })
+    @Field(() => String, { nullable: true })
     company!: string | null;
 
     @Field()

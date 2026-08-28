@@ -14,7 +14,7 @@ export class CreateInquiryDto {
     @MaxLength(254)
     email!: string;
 
-    @Field({ nullable: true })
+    @Field(() => String, { nullable: true })
     @IsOptional()
     @IsString()
     @MaxLength(150)
