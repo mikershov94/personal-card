@@ -16,6 +16,23 @@ jobs:
         name: checks
         runs-on: ubuntu-latest
         timeout-minutes: 10
+        env:
+            DATABASE_URL: postgresql://personal_card_e2e:personal_card_e2e@localhost:5432/personal_card_e2e?schema=public
+
+        services:
+            postgres:
+                image: postgres:17-alpine
+                env:
+                    POSTGRES_USER: personal_card_e2e
+                    POSTGRES_PASSWORD: personal_card_e2e
+                    POSTGRES_DB: personal_card_e2e
+                ports:
+                    - 5432:5432
+                options: >-
+                    --health-cmd "pg_isready -U personal_card_e2e -d personal_card_e2e"
+                    --health-interval 5s
+                    --health-timeout 5s
+                    --health-retries 10
 
         steps:
             - name: Checkout repo
@@ -34,6 +51,9 @@ jobs:
             - name: Install dependencies
               run: pnpm install --frozen-lockfile
 
+            - name: Generate Prisma Client
+              run: pnpm --filter api db:generate
+
             - name: Check formatting
               run: pnpm format:check
 
@@ -45,6 +65,12 @@ jobs:
 
             - name: Unit tests
               run: pnpm test --runInBand
+
+            - name: Apply e2e database migrations
+              run: pnpm --filter api db:migrate:e2e
+
+            - name: E2E tests
+              run: pnpm test:e2e --runInBand
 
             - name: Build
               run: pnpm build
