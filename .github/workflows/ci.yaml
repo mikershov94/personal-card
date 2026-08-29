@@ -66,9 +66,6 @@ jobs:
             - name: Unit tests
               run: pnpm test --runInBand
 
-            - name: Apply e2e database migrations
-              run: pnpm --filter api db:migrate:e2e
-
             - name: E2E tests
               run: pnpm test:e2e --runInBand
 

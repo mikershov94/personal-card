@@ -5,8 +5,8 @@
 	"packageManager": "pnpm@11.8.0",
 	"scripts": {
 		"build": "pnpm --filter api build",
-		"format": "prettier --write \"apps/**/*.{ts,tsx,js,mjs,cjs}\" \"eslint.config.mjs\" && pnpm db:format",
-		"format:check": "prettier --check \"apps/**/*.{ts,tsx,js,mjs,cjs}\" \"eslint.config.mjs\"",
+		"format": "prettier --write \"apps/**/*.{ts,tsx,js,mjs,cjs}\" \"scripts/**/*.mjs\" \"eslint.config.mjs\" && pnpm db:format",
+		"format:check": "prettier --check \"apps/**/*.{ts,tsx,js,mjs,cjs}\" \"scripts/**/*.mjs\" \"eslint.config.mjs\"",
 		"typecheck": "pnpm --filter api typecheck",
 		"lint": "eslint \"apps/**/*.{ts,tsx}\"",
 		"lint:fix": "eslint \"apps/**/*.{ts,tsx}\" --fix",
@@ -16,7 +16,7 @@
 		"db:e2e:down": "docker compose -f compose.e2e.yaml down -v",
 		"db:migrate:e2e": "pnpm --filter api db:migrate:e2e",
 		"test": "pnpm --filter api test",
-		"test:e2e": "pnpm --filter api test:e2e"
+		"test:e2e": "node scripts/run-e2e.mjs"
 	},
 	"author": "Michael E. Ershov",
 	"devDependencies": {
