@@ -13,6 +13,9 @@ apps/api/src/generated
 .env.*
 !.env.example
 
+# Local certificates
+/ca.crt
+
 # Logs
 *.log
 
