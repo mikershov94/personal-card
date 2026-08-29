@@ -1,0 +1,5 @@
+interface:
+  display_name: "NestJS GraphQL Feature"
+  short_description: "Реализация GraphQL-фич по архитектуре проекта"
+  default_prompt: "Use $nestjs-graphql-feature to implement the next backend feature in this project."
+
