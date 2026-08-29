@@ -1,0 +1,5 @@
+interface:
+  display_name: "NestJS Prisma E2E"
+  short_description: "Изолированные e2e-тесты NestJS и Prisma"
+  default_prompt: "Use $nestjs-prisma-e2e to implement isolated PostgreSQL e2e tests for this NestJS application."
+
