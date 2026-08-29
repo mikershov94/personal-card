@@ -1,4 +1,4 @@
-import { ServiceUnavailableException } from '@nestjs/common';
+import { Logger, ServiceUnavailableException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 
 import { PrismaService } from '../prisma/prisma.service';
@@ -27,6 +27,10 @@ describe('HealthService', () => {
         service = module.get<HealthService>(HealthService);
     });
 
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
     it('должен быть определён', () => {
         expect(service).toBeDefined();
     });
@@ -46,7 +50,12 @@ describe('HealthService', () => {
         });
 
         it('должен выбросить ошибку 503, если база данных недоступна', async () => {
-            prismaServiceMock.$queryRaw.mockRejectedValue(new Error('Connection refused'));
+            const loggerErrorSpy = jest.spyOn(Logger.prototype, 'error').mockImplementation();
+            prismaServiceMock.$queryRaw.mockRejectedValue(
+                new Error(
+                    'Connection refused for postgresql://test_user:test_password@db:5432/test_db',
+                ),
+            );
 
             await expect(service.checkReady()).rejects.toMatchObject({
                 constructor: ServiceUnavailableException,
@@ -54,6 +63,9 @@ describe('HealthService', () => {
                 status: 503,
             });
             expect(prismaServiceMock.$queryRaw).toHaveBeenCalledTimes(1);
+            expect(loggerErrorSpy).toHaveBeenCalledWith(
+                'Database readiness check failed: Error: Connection refused for postgresql://test_user:***@db:5432/test_db',
+            );
         });
     });
 });
