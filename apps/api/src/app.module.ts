@@ -15,6 +15,7 @@ import { PrismaModule } from './prisma/prisma.module';
             driver: ApolloDriver,
             autoSchemaFile: true,
             sortSchema: true,
+            introspection: true,
         }),
         InquiriesModule,
         PrismaModule,
