@@ -3,8 +3,8 @@ model Profile {
   displayName String
   headline    String
   summary     String
-  location    String?
-  avatarUrl   String?
+  location    String
+  avatarUrl   String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }

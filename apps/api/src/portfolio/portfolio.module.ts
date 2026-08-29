@@ -1,4 +1,8 @@
 import { Module } from '@nestjs/common';
 
-@Module({})
+import { PortfolioRepository } from './repositories/portfolio.repository';
+
+@Module({
+    providers: [PortfolioRepository],
+})
 export class PortfolioModule {}
