@@ -23,9 +23,11 @@ export class PortfolioResolver {
         return this.portfolioService.updateProfile(dto);
     }
 
-    @Mutation()
-    public deleteProfile(): Promise<void> {
-        return this.portfolioService.deleteProfile();
+    @Mutation(() => Boolean)
+    public async deleteProfile(): Promise<boolean> {
+        await this.portfolioService.deleteProfile();
+
+        return true;
     }
 
     @Query(() => ProfileEntity)

@@ -107,7 +107,7 @@ describe('PortfolioResolver', () => {
         it('должен удалить профиль', async () => {
             portfolioServiceMock.deleteProfile.mockResolvedValue(undefined);
 
-            await expect(resolver.deleteProfile()).resolves.toBeUndefined();
+            await expect(resolver.deleteProfile()).resolves.toBe(true);
             expect(portfolioServiceMock.deleteProfile).toHaveBeenCalledTimes(1);
             expect(portfolioServiceMock.deleteProfile).toHaveBeenCalledWith();
         });

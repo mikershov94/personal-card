@@ -3,31 +3,31 @@ import { IsOptional, IsString, Length } from 'class-validator';
 
 @InputType('UpdateProfileInput')
 export class UpdateProfileDto {
-    @Field()
+    @Field({ nullable: true })
     @IsOptional()
     @IsString()
     @Length(2, 100)
     displayName?: string;
 
-    @Field()
+    @Field({ nullable: true })
     @IsOptional()
     @IsString()
     @Length(2, 100)
     headline?: string;
 
-    @Field()
+    @Field({ nullable: true })
     @IsOptional()
     @IsString()
     @Length(10, 400)
     summary?: string;
 
-    @Field()
+    @Field({ nullable: true })
     @IsOptional()
     @IsString()
     @Length(2, 100)
     location?: string;
 
-    @Field()
+    @Field({ nullable: true })
     @IsOptional()
     @IsString()
     @Length(10, 100)
