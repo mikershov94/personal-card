@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { PrismaService } from '../../prisma/prisma.service';
 import { ProfileEntity } from '../entities/profile.entity';
@@ -9,8 +9,6 @@ export interface CreateProfileData {
     summary: string;
     location: string;
     avatarUrl: string;
-    createdAt: Date;
-    updatedAt: Date;
 }
 
 export type UpdateProfileData = Partial<CreateProfileData>;
@@ -21,7 +19,7 @@ export const MAIN_PROFILE_ID = 'main' as const;
 export class PortfolioRepository {
     constructor(private readonly prismaService: PrismaService) {}
 
-    public createProfile(data: CreateProfileData): Promise<ProfileEntity> {
+    public async createProfile(data: CreateProfileData): Promise<ProfileEntity> {
         return this.prismaService.profile.create({ data });
     }
 
@@ -33,7 +31,15 @@ export class PortfolioRepository {
         return this.prismaService.profile.delete({ where: { id: MAIN_PROFILE_ID } });
     }
 
-    public async getProfile(): Promise<ProfileEntity | null> {
-        return this.prismaService.profile.findUnique({ where: { id: MAIN_PROFILE_ID } });
+    public async getProfile(): Promise<ProfileEntity> {
+        const profile = await this.prismaService.profile.findUnique({
+            where: { id: MAIN_PROFILE_ID },
+        });
+
+        if (!profile) {
+            throw new NotFoundException('Профиль пуст');
+        }
+
+        return profile;
     }
 }

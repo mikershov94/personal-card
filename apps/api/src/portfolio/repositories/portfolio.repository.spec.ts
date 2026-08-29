@@ -53,8 +53,6 @@ describe('PortfolioRepository', () => {
             summary: profile.summary,
             location: profile.location,
             avatarUrl: profile.avatarUrl,
-            createdAt: profile.createdAt,
-            updatedAt: profile.updatedAt,
         };
 
         it('должен создать и вернуть профиль', async () => {
