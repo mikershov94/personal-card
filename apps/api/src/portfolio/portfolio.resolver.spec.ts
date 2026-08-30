@@ -1,7 +1,11 @@
+import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 
+import { CreateExperienceDto } from './dto/create-experience.input.dto';
 import { CreateProfileDto } from './dto/create-profile.input.dto';
+import { UpdateExperienceDto } from './dto/update-experience.input.dto';
 import { UpdateProfileDto } from './dto/update-profile.input.dto';
+import { ExperienceEntity } from './entities/experience.entity';
 import { ProfileEntity } from './entities/profile.entity';
 import { PortfolioResolver } from './portfolio.resolver';
 import { PortfolioService } from './portfolio.service';
@@ -14,6 +18,22 @@ describe('PortfolioResolver', () => {
         updateProfile: jest.fn(),
         deleteProfile: jest.fn(),
         getProfile: jest.fn(),
+        createExperience: jest.fn(),
+        updateExperience: jest.fn(),
+        deleteExperience: jest.fn(),
+    };
+
+    const experience: ExperienceEntity = {
+        id: '77df17af-ca61-4710-a6ca-66b93dfeab7c',
+        company: 'Example',
+        position: 'Fullstack-разработчик',
+        location: null,
+        description: 'Разрабатывал web-приложения на React и NestJS.',
+        startedAt: new Date('2024-01-01T00:00:00.000Z'),
+        endedAt: null,
+        sortOrder: 0,
+        createdAt: new Date('2026-08-30T00:00:00.000Z'),
+        updatedAt: new Date('2026-08-30T00:00:00.000Z'),
     };
 
     const profile: ProfileEntity = {
@@ -139,6 +159,83 @@ describe('PortfolioResolver', () => {
             await expect(resolver.getProfile()).rejects.toBe(error);
             expect(portfolioServiceMock.getProfile).toHaveBeenCalledTimes(1);
             expect(portfolioServiceMock.getProfile).toHaveBeenCalledWith();
+        });
+    });
+
+    describe('createExperience', () => {
+        const createExperienceDto: CreateExperienceDto = {
+            company: experience.company,
+            position: experience.position,
+            location: experience.location,
+            description: experience.description,
+            startedAt: experience.startedAt,
+            endedAt: experience.endedAt,
+        };
+
+        it('должен создать и вернуть запись об опыте', async () => {
+            portfolioServiceMock.createExperience.mockResolvedValue(experience);
+
+            await expect(resolver.createExperience(createExperienceDto)).resolves.toEqual(
+                experience,
+            );
+            expect(portfolioServiceMock.createExperience).toHaveBeenCalledTimes(1);
+            expect(portfolioServiceMock.createExperience).toHaveBeenCalledWith(createExperienceDto);
+        });
+
+        it('должен пробросить ошибку сервиса', async () => {
+            const error = new NotFoundException('Профиль пуст');
+            portfolioServiceMock.createExperience.mockRejectedValue(error);
+
+            await expect(resolver.createExperience(createExperienceDto)).rejects.toBe(error);
+        });
+    });
+
+    describe('updateExperience', () => {
+        const updateExperienceDto: UpdateExperienceDto = {
+            position: 'Senior Fullstack-разработчик',
+        };
+
+        it('должен обновить и вернуть запись об опыте', async () => {
+            const updatedExperience: ExperienceEntity = {
+                ...experience,
+                ...updateExperienceDto,
+            };
+            portfolioServiceMock.updateExperience.mockResolvedValue(updatedExperience);
+
+            await expect(
+                resolver.updateExperience(experience.id, updateExperienceDto),
+            ).resolves.toEqual(updatedExperience);
+            expect(portfolioServiceMock.updateExperience).toHaveBeenCalledTimes(1);
+            expect(portfolioServiceMock.updateExperience).toHaveBeenCalledWith(
+                experience.id,
+                updateExperienceDto,
+            );
+        });
+
+        it('должен пробросить ошибку сервиса', async () => {
+            const error = new NotFoundException('Запись об опыте не найдена');
+            portfolioServiceMock.updateExperience.mockRejectedValue(error);
+
+            await expect(
+                resolver.updateExperience(experience.id, updateExperienceDto),
+            ).rejects.toBe(error);
+        });
+    });
+
+    describe('deleteExperience', () => {
+        it('должен удалить запись об опыте', async () => {
+            portfolioServiceMock.deleteExperience.mockResolvedValue(undefined);
+
+            await expect(resolver.deleteExperience(experience.id)).resolves.toBe(true);
+            expect(portfolioServiceMock.deleteExperience).toHaveBeenCalledTimes(1);
+            expect(portfolioServiceMock.deleteExperience).toHaveBeenCalledWith(experience.id);
+        });
+
+        it('должен пробросить ошибку сервиса', async () => {
+            const error = new NotFoundException('Запись об опыте не найдена');
+            portfolioServiceMock.deleteExperience.mockRejectedValue(error);
+
+            await expect(resolver.deleteExperience(experience.id)).rejects.toBe(error);
         });
     });
 });
