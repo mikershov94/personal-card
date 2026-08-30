@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 
 import { PrismaService } from '../../prisma/prisma.service';
 import { ExperienceEntity } from '../entities/experience.entity';
@@ -16,21 +16,70 @@ export interface CreateExperienceData {
 
 export type UpdateExperienceData = Partial<CreateExperienceData>;
 
+function hasPrismaErrorCode(error: unknown, code: string): boolean {
+    return typeof error === 'object' && error !== null && 'code' in error && error.code === code;
+}
+
 @Injectable()
 export class ExperienceRepository {
     constructor(private readonly prismaService: PrismaService) {}
 
-    public createExperience(data: CreateExperienceData): Promise<ExperienceEntity> {
-        return this.prismaService.experience.create({
-            data: { ...data, profileId: MAIN_PROFILE_ID },
-        });
+    public async createExperience(data: CreateExperienceData): Promise<ExperienceEntity> {
+        try {
+            return await this.prismaService.experience.create({
+                data: { ...data, profileId: MAIN_PROFILE_ID },
+            });
+        } catch (error: unknown) {
+            if (hasPrismaErrorCode(error, 'P2003')) {
+                throw new NotFoundException('Профиль пуст');
+            }
+
+            throw new InternalServerErrorException('Не удалось создать запись об опыте');
+        }
     }
 
-    public updateExperience(id: string, data: UpdateExperienceData): Promise<ExperienceEntity> {
-        return this.prismaService.experience.update({ where: { id }, data });
+    public async updateExperience(
+        id: string,
+        data: UpdateExperienceData,
+    ): Promise<ExperienceEntity> {
+        try {
+            return await this.prismaService.experience.update({ where: { id }, data });
+        } catch (error: unknown) {
+            if (hasPrismaErrorCode(error, 'P2025')) {
+                throw new NotFoundException('Запись об опыте не найдена');
+            }
+
+            throw new InternalServerErrorException('Не удалось обновить запись об опыте');
+        }
     }
 
-    public deleteExperience(id: string): Promise<ExperienceEntity> {
-        return this.prismaService.experience.delete({ where: { id } });
+    public async deleteExperience(id: string): Promise<ExperienceEntity> {
+        try {
+            return await this.prismaService.experience.delete({ where: { id } });
+        } catch (error: unknown) {
+            if (hasPrismaErrorCode(error, 'P2025')) {
+                throw new NotFoundException('Запись об опыте не найдена');
+            }
+
+            throw new InternalServerErrorException('Не удалось удалить запись об опыте');
+        }
+    }
+
+    public async getExperience(id: string): Promise<ExperienceEntity> {
+        let experience: ExperienceEntity | null;
+
+        try {
+            experience = await this.prismaService.experience.findFirst({
+                where: { id, profileId: MAIN_PROFILE_ID },
+            });
+        } catch {
+            throw new InternalServerErrorException('Не удалось получить запись об опыте');
+        }
+
+        if (!experience) {
+            throw new NotFoundException('Запись об опыте не найдена');
+        }
+
+        return experience;
     }
 }

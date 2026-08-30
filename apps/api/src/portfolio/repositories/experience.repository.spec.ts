@@ -1,3 +1,4 @@
+import { InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 
 import { PrismaService } from '../../prisma/prisma.service';
@@ -10,11 +11,15 @@ import {
 describe('ExperienceRepository', () => {
     let repository: ExperienceRepository;
 
+    const prismaError = (code: string): Error & { code: string } =>
+        Object.assign(new Error(`Prisma error ${code}`), { code });
+
     const prismaServiceMock = {
         experience: {
             create: jest.fn(),
             update: jest.fn(),
             delete: jest.fn(),
+            findFirst: jest.fn(),
         },
     };
 
@@ -73,11 +78,12 @@ describe('ExperienceRepository', () => {
             });
         });
 
-        it('должен пробросить ошибку Prisma', async () => {
-            const error = new Error('Не удалось создать запись об опыте');
-            prismaServiceMock.experience.create.mockRejectedValue(error);
+        it('должен выбросить NotFoundException, если основной профиль отсутствует', async () => {
+            prismaServiceMock.experience.create.mockRejectedValue(prismaError('P2003'));
 
-            await expect(repository.createExperience(createExperienceData)).rejects.toBe(error);
+            await expect(repository.createExperience(createExperienceData)).rejects.toEqual(
+                new NotFoundException('Профиль пуст'),
+            );
         });
     });
 
@@ -100,13 +106,12 @@ describe('ExperienceRepository', () => {
             });
         });
 
-        it('должен пробросить ошибку Prisma', async () => {
-            const error = new Error('Запись об опыте не найдена');
-            prismaServiceMock.experience.update.mockRejectedValue(error);
+        it('должен выбросить NotFoundException, если запись отсутствует', async () => {
+            prismaServiceMock.experience.update.mockRejectedValue(prismaError('P2025'));
 
             await expect(
                 repository.updateExperience(experience.id, updateExperienceData),
-            ).rejects.toBe(error);
+            ).rejects.toEqual(new NotFoundException('Запись об опыте не найдена'));
         });
     });
 
@@ -120,11 +125,45 @@ describe('ExperienceRepository', () => {
             });
         });
 
-        it('должен пробросить ошибку Prisma', async () => {
-            const error = new Error('Запись об опыте не найдена');
-            prismaServiceMock.experience.delete.mockRejectedValue(error);
+        it('должен выбросить NotFoundException, если запись отсутствует', async () => {
+            prismaServiceMock.experience.delete.mockRejectedValue(prismaError('P2025'));
 
-            await expect(repository.deleteExperience(experience.id)).rejects.toBe(error);
+            await expect(repository.deleteExperience(experience.id)).rejects.toEqual(
+                new NotFoundException('Запись об опыте не найдена'),
+            );
+        });
+    });
+
+    describe('getExperience', () => {
+        it('должен вернуть запись об опыте основного профиля', async () => {
+            prismaServiceMock.experience.findFirst.mockResolvedValue(experience);
+
+            await expect(repository.getExperience(experience.id)).resolves.toEqual(experience);
+            expect(prismaServiceMock.experience.findFirst).toHaveBeenCalledTimes(1);
+            expect(prismaServiceMock.experience.findFirst).toHaveBeenCalledWith({
+                where: {
+                    id: experience.id,
+                    profileId: 'main',
+                },
+            });
+        });
+
+        it('должен выбросить NotFoundException, если запись не найдена', async () => {
+            prismaServiceMock.experience.findFirst.mockResolvedValue(null);
+
+            await expect(repository.getExperience(experience.id)).rejects.toEqual(
+                new NotFoundException('Запись об опыте не найдена'),
+            );
+            expect(prismaServiceMock.experience.findFirst).toHaveBeenCalledTimes(1);
+        });
+
+        it('должен скрыть неизвестную ошибку Prisma за InternalServerErrorException', async () => {
+            prismaServiceMock.experience.findFirst.mockRejectedValue(new Error('Database error'));
+
+            await expect(repository.getExperience(experience.id)).rejects.toEqual(
+                new InternalServerErrorException('Не удалось получить запись об опыте'),
+            );
+            expect(prismaServiceMock.experience.findFirst).toHaveBeenCalledTimes(1);
         });
     });
 });
