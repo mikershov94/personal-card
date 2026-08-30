@@ -1,4 +1,18 @@
 services:
+    public:
+        build:
+            context: .
+            dockerfile: apps/public/Dockerfile
+            target: development
+        ports:
+            - '3001:3000'
+        environment:
+            NEXT_TELEMETRY_DISABLED: '1'
+            WATCHPACK_POLLING: 'true'
+        volumes:
+            - ./apps/public/src:/workspace/apps/public/src
+            - ./apps/public/next.config.ts:/workspace/apps/public/next.config.ts
+
     api:
         build:
             context: .
