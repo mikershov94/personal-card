@@ -21,6 +21,10 @@ describe('SkillRepository', () => {
             create: jest.fn(),
             delete: jest.fn(),
         },
+        projectSkill: {
+            create: jest.fn(),
+            delete: jest.fn(),
+        },
     };
 
     const skill = {
@@ -244,6 +248,92 @@ describe('SkillRepository', () => {
 
             await expect(repository.detachSkillFromProfile(skill.id)).rejects.toEqual(
                 new InternalServerErrorException('Не удалось удалить навык из профиля'),
+            );
+        });
+    });
+
+    describe('attachSkillToProject', () => {
+        const projectId = '62fa4202-7d54-4b3b-94df-df8d880b157d';
+
+        it('должен привязать навык к проекту с заданным порядком', async () => {
+            prismaServiceMock.projectSkill.create.mockResolvedValue({
+                projectId,
+                skillId: skill.id,
+                sortOrder: 2,
+            });
+
+            await expect(
+                repository.attachSkillToProject(projectId, skill.id, 2),
+            ).resolves.toBeUndefined();
+            expect(prismaServiceMock.projectSkill.create).toHaveBeenCalledWith({
+                data: { projectId, skillId: skill.id, sortOrder: 2 },
+            });
+        });
+
+        it('должен использовать нулевой порядок по умолчанию', async () => {
+            prismaServiceMock.projectSkill.create.mockResolvedValue({});
+
+            await repository.attachSkillToProject(projectId, skill.id);
+
+            expect(prismaServiceMock.projectSkill.create).toHaveBeenCalledWith({
+                data: { projectId, skillId: skill.id, sortOrder: 0 },
+            });
+        });
+
+        it('должен отклонить повторную привязку', async () => {
+            prismaServiceMock.projectSkill.create.mockRejectedValue(prismaError('P2002'));
+
+            await expect(repository.attachSkillToProject(projectId, skill.id)).rejects.toEqual(
+                new ConflictException('Навык уже добавлен в проект'),
+            );
+        });
+
+        it('должен отклонить отсутствующий проект или навык', async () => {
+            prismaServiceMock.projectSkill.create.mockRejectedValue(prismaError('P2003'));
+
+            await expect(repository.attachSkillToProject(projectId, skill.id)).rejects.toEqual(
+                new NotFoundException('Проект или навык не найден'),
+            );
+        });
+
+        it('должен скрыть неизвестную ошибку Prisma', async () => {
+            prismaServiceMock.projectSkill.create.mockRejectedValue(new Error('Database error'));
+
+            await expect(repository.attachSkillToProject(projectId, skill.id)).rejects.toEqual(
+                new InternalServerErrorException('Не удалось добавить навык в проект'),
+            );
+        });
+    });
+
+    describe('detachSkillFromProject', () => {
+        const projectId = '62fa4202-7d54-4b3b-94df-df8d880b157d';
+
+        it('должен отвязать навык от проекта', async () => {
+            prismaServiceMock.projectSkill.delete.mockResolvedValue({});
+
+            await expect(
+                repository.detachSkillFromProject(projectId, skill.id),
+            ).resolves.toBeUndefined();
+            expect(prismaServiceMock.projectSkill.delete).toHaveBeenCalledWith({
+                where: {
+                    projectId_skillId: { projectId, skillId: skill.id },
+                },
+            });
+        });
+
+        it('должен отклонить отсутствующую привязку', async () => {
+            prismaServiceMock.projectSkill.delete.mockRejectedValue(prismaError('P2025'));
+
+            await expect(repository.detachSkillFromProject(projectId, skill.id)).rejects.toEqual(
+                new NotFoundException('Навык не добавлен в проект'),
+            );
+        });
+
+        it('должен скрыть неизвестную ошибку Prisma', async () => {
+            prismaServiceMock.projectSkill.delete.mockRejectedValue(new Error('Database error'));
+
+            await expect(repository.detachSkillFromProject(projectId, skill.id)).rejects.toEqual(
+                new InternalServerErrorException('Не удалось удалить навык из проекта'),
             );
         });
     });

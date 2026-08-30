@@ -6,6 +6,7 @@ import { UpdateSkillDto } from '../dto/update-skill.input.dto';
 import { ProfileEntity } from '../entities/profile.entity';
 import { SkillEntity } from '../entities/skill.entity';
 import { ProfileRepository } from '../repositories/profile.repository';
+import { ProjectRepository } from '../repositories/project.repository';
 import { SkillRepository } from '../repositories/skill.repository';
 import { SkillService } from './skill.service';
 
@@ -23,6 +24,12 @@ describe('SkillService', () => {
         deleteSkill: jest.fn(),
         attachSkillToProfile: jest.fn(),
         detachSkillFromProfile: jest.fn(),
+        attachSkillToProject: jest.fn(),
+        detachSkillFromProject: jest.fn(),
+    };
+
+    const projectRepositoryMock = {
+        getProject: jest.fn(),
     };
 
     const profile: ProfileEntity = {
@@ -54,6 +61,7 @@ describe('SkillService', () => {
                 SkillService,
                 { provide: ProfileRepository, useValue: profileRepositoryMock },
                 { provide: SkillRepository, useValue: skillRepositoryMock },
+                { provide: ProjectRepository, useValue: projectRepositoryMock },
             ],
         }).compile();
 
@@ -147,6 +155,68 @@ describe('SkillService', () => {
             skillRepositoryMock.detachSkillFromProfile.mockRejectedValue(error);
 
             await expect(service.detachSkillFromProfile(skill.id)).rejects.toBe(error);
+        });
+    });
+
+    describe('attachSkillToProject', () => {
+        const projectId = '62fa4202-7d54-4b3b-94df-df8d880b157d';
+
+        it('должен проверить проект и навык, затем создать привязку', async () => {
+            projectRepositoryMock.getProject.mockResolvedValue({ id: projectId });
+            skillRepositoryMock.getSkill.mockResolvedValue(skill);
+            skillRepositoryMock.attachSkillToProject.mockResolvedValue(undefined);
+
+            await expect(
+                service.attachSkillToProject(projectId, skill.id, 2),
+            ).resolves.toBeUndefined();
+            expect(projectRepositoryMock.getProject).toHaveBeenCalledWith(projectId);
+            expect(skillRepositoryMock.getSkill).toHaveBeenCalledWith(skill.id);
+            expect(skillRepositoryMock.attachSkillToProject).toHaveBeenCalledWith(
+                projectId,
+                skill.id,
+                2,
+            );
+        });
+
+        it('не должен искать и привязывать навык, если проект отсутствует', async () => {
+            const error = new NotFoundException('Проект не найден');
+            projectRepositoryMock.getProject.mockRejectedValue(error);
+
+            await expect(service.attachSkillToProject(projectId, skill.id)).rejects.toBe(error);
+            expect(skillRepositoryMock.getSkill).not.toHaveBeenCalled();
+            expect(skillRepositoryMock.attachSkillToProject).not.toHaveBeenCalled();
+        });
+
+        it('не должен создавать привязку, если навык отсутствует', async () => {
+            const error = new NotFoundException('Навык не найден');
+            projectRepositoryMock.getProject.mockResolvedValue({ id: projectId });
+            skillRepositoryMock.getSkill.mockRejectedValue(error);
+
+            await expect(service.attachSkillToProject(projectId, skill.id)).rejects.toBe(error);
+            expect(skillRepositoryMock.attachSkillToProject).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('detachSkillFromProject', () => {
+        const projectId = '62fa4202-7d54-4b3b-94df-df8d880b157d';
+
+        it('должен удалить привязку навыка к проекту', async () => {
+            skillRepositoryMock.detachSkillFromProject.mockResolvedValue(undefined);
+
+            await expect(
+                service.detachSkillFromProject(projectId, skill.id),
+            ).resolves.toBeUndefined();
+            expect(skillRepositoryMock.detachSkillFromProject).toHaveBeenCalledWith(
+                projectId,
+                skill.id,
+            );
+        });
+
+        it('должен пробросить ошибку SkillRepository', async () => {
+            const error = new NotFoundException('Навык не добавлен в проект');
+            skillRepositoryMock.detachSkillFromProject.mockRejectedValue(error);
+
+            await expect(service.detachSkillFromProject(projectId, skill.id)).rejects.toBe(error);
         });
     });
 });

@@ -5,8 +5,10 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { SkillEntity } from '../entities/skill.entity';
 import {
     ATTACH_SKILL_ERROR_CONFIG,
+    ATTACH_SKILL_TO_PROJECT_ERROR_CONFIG,
     CREATE_SKILL_ERROR_CONFIG,
     DELETE_SKILL_ERROR_CONFIG,
+    DETACH_SKILL_FROM_PROJECT_ERROR_CONFIG,
     DETACH_SKILL_ERROR_CONFIG,
     GET_SKILL_ERROR_CONFIG,
     UPDATE_SKILL_ERROR_CONFIG,
@@ -92,6 +94,39 @@ export class SkillRepository {
             });
         } catch (error: unknown) {
             throw mapPrismaError(error, DETACH_SKILL_ERROR_CONFIG);
+        }
+    }
+
+    public async attachSkillToProject(
+        projectId: string,
+        skillId: string,
+        sortOrder = 0,
+    ): Promise<void> {
+        try {
+            await this.prismaService.projectSkill.create({
+                data: {
+                    projectId,
+                    skillId,
+                    sortOrder,
+                },
+            });
+        } catch (error: unknown) {
+            throw mapPrismaError(error, ATTACH_SKILL_TO_PROJECT_ERROR_CONFIG);
+        }
+    }
+
+    public async detachSkillFromProject(projectId: string, skillId: string): Promise<void> {
+        try {
+            await this.prismaService.projectSkill.delete({
+                where: {
+                    projectId_skillId: {
+                        projectId,
+                        skillId,
+                    },
+                },
+            });
+        } catch (error: unknown) {
+            throw mapPrismaError(error, DETACH_SKILL_FROM_PROJECT_ERROR_CONFIG);
         }
     }
 }

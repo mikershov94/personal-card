@@ -49,4 +49,25 @@ export class SkillResolver {
 
         return true;
     }
+
+    @Mutation(() => Boolean)
+    public async attachSkillToProject(
+        @Args('projectId', { type: () => ID }) projectId: string,
+        @Args('skillId', { type: () => ID }) skillId: string,
+        @Args('sortOrder', { type: () => Int, nullable: true, defaultValue: 0 }) sortOrder = 0,
+    ): Promise<boolean> {
+        await this.skillService.attachSkillToProject(projectId, skillId, sortOrder);
+
+        return true;
+    }
+
+    @Mutation(() => Boolean)
+    public async detachSkillFromProject(
+        @Args('projectId', { type: () => ID }) projectId: string,
+        @Args('skillId', { type: () => ID }) skillId: string,
+    ): Promise<boolean> {
+        await this.skillService.detachSkillFromProject(projectId, skillId);
+
+        return true;
+    }
 }

@@ -16,6 +16,8 @@ describe('SkillResolver', () => {
         deleteSkill: jest.fn(),
         attachSkillToProfile: jest.fn(),
         detachSkillFromProfile: jest.fn(),
+        attachSkillToProject: jest.fn(),
+        detachSkillFromProject: jest.fn(),
     };
 
     const skill: SkillEntity = {
@@ -121,6 +123,49 @@ describe('SkillResolver', () => {
             skillServiceMock.detachSkillFromProfile.mockRejectedValue(error);
 
             await expect(resolver.detachSkillFromProfile(skill.id)).rejects.toBe(error);
+        });
+    });
+
+    describe('attachSkillToProject', () => {
+        const projectId = '62fa4202-7d54-4b3b-94df-df8d880b157d';
+
+        it('должен привязать навык к проекту с порядком и вернуть true', async () => {
+            skillServiceMock.attachSkillToProject.mockResolvedValue(undefined);
+
+            await expect(resolver.attachSkillToProject(projectId, skill.id, 2)).resolves.toBe(true);
+            expect(skillServiceMock.attachSkillToProject).toHaveBeenCalledWith(
+                projectId,
+                skill.id,
+                2,
+            );
+        });
+
+        it('должен пробросить ошибку сервиса', async () => {
+            const error = new ConflictException('Навык уже добавлен в проект');
+            skillServiceMock.attachSkillToProject.mockRejectedValue(error);
+
+            await expect(resolver.attachSkillToProject(projectId, skill.id, 0)).rejects.toBe(error);
+        });
+    });
+
+    describe('detachSkillFromProject', () => {
+        const projectId = '62fa4202-7d54-4b3b-94df-df8d880b157d';
+
+        it('должен отвязать навык от проекта и вернуть true', async () => {
+            skillServiceMock.detachSkillFromProject.mockResolvedValue(undefined);
+
+            await expect(resolver.detachSkillFromProject(projectId, skill.id)).resolves.toBe(true);
+            expect(skillServiceMock.detachSkillFromProject).toHaveBeenCalledWith(
+                projectId,
+                skill.id,
+            );
+        });
+
+        it('должен пробросить ошибку сервиса', async () => {
+            const error = new NotFoundException('Навык не добавлен в проект');
+            skillServiceMock.detachSkillFromProject.mockRejectedValue(error);
+
+            await expect(resolver.detachSkillFromProject(projectId, skill.id)).rejects.toBe(error);
         });
     });
 });
