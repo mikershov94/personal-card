@@ -25,3 +25,12 @@ apps/api/src/generated
 # OS
 .DS_Store
 Thumbs.db
+
+# Next.js
+.next/
+out/
+.vercel/
+next-env.d.ts
+
+# Certificates
+*.pem

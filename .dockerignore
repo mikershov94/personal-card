@@ -4,10 +4,11 @@ node_modules
 .pnpm-store
 dist
 **/dist
+.next
+**/.next
 coverage
 **/coverage
 .env
 .env.*
 !.env.example
 *.log
-
