@@ -3,35 +3,35 @@ import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { CreateProfileDto } from '../dto/create-profile.input.dto';
 import { UpdateProfileDto } from '../dto/update-profile.input.dto';
 import { ProfileEntity } from '../entities/profile.entity';
-import { PortfolioService } from '../portfolio.service';
+import { ProfileService } from '../services/profile.service';
 
 @Resolver(() => ProfileEntity)
 export class ProfileResolver {
-    constructor(private readonly portfolioService: PortfolioService) {}
+    constructor(private readonly profileService: ProfileService) {}
 
     @Mutation(() => ProfileEntity)
     public createProfile(
         @Args('input', { type: () => CreateProfileDto }) dto: CreateProfileDto,
     ): Promise<ProfileEntity> {
-        return this.portfolioService.createProfile(dto);
+        return this.profileService.createProfile(dto);
     }
 
     @Mutation(() => ProfileEntity)
     public updateProfile(
         @Args('input', { type: () => UpdateProfileDto }) dto: UpdateProfileDto,
     ): Promise<ProfileEntity> {
-        return this.portfolioService.updateProfile(dto);
+        return this.profileService.updateProfile(dto);
     }
 
     @Mutation(() => Boolean)
     public async deleteProfile(): Promise<boolean> {
-        await this.portfolioService.deleteProfile();
+        await this.profileService.deleteProfile();
 
         return true;
     }
 
     @Query(() => ProfileEntity)
     public getProfile(): Promise<ProfileEntity> {
-        return this.portfolioService.getProfile();
+        return this.profileService.getProfile();
     }
 }

@@ -23,6 +23,18 @@ describe('ExperienceRepository', () => {
         },
     };
 
+    const experienceInclude = {
+        projects: {
+            orderBy: [{ sortOrder: 'asc' }, { title: 'asc' }, { id: 'asc' }],
+            include: {
+                skills: {
+                    orderBy: [{ sortOrder: 'asc' }, { skillId: 'asc' }],
+                    include: { skill: true },
+                },
+            },
+        },
+    };
+
     const experience = {
         id: '77df17af-ca61-4710-a6ca-66b93dfeab7c',
         company: 'Example',
@@ -34,6 +46,7 @@ describe('ExperienceRepository', () => {
         sortOrder: 0,
         createdAt: new Date('2026-08-30T00:00:00.000Z'),
         updatedAt: new Date('2026-08-30T00:00:00.000Z'),
+        projects: [],
     };
 
     beforeEach(async () => {
@@ -74,6 +87,7 @@ describe('ExperienceRepository', () => {
             );
             expect(prismaServiceMock.experience.create).toHaveBeenCalledWith({
                 data: { ...createExperienceData, profileId: 'main', sortOrder: 0 },
+                include: experienceInclude,
             });
         });
 
@@ -110,6 +124,7 @@ describe('ExperienceRepository', () => {
             expect(prismaServiceMock.experience.update).toHaveBeenCalledWith({
                 where: { id: experience.id, profileId: 'main' },
                 data: updateExperienceData,
+                include: experienceInclude,
             });
         });
 
@@ -139,6 +154,7 @@ describe('ExperienceRepository', () => {
             await expect(repository.deleteExperience(experience.id)).resolves.toEqual(experience);
             expect(prismaServiceMock.experience.delete).toHaveBeenCalledWith({
                 where: { id: experience.id, profileId: 'main' },
+                include: experienceInclude,
             });
         });
 
@@ -170,6 +186,7 @@ describe('ExperienceRepository', () => {
                     id: experience.id,
                     profileId: 'main',
                 },
+                include: experienceInclude,
             });
         });
 

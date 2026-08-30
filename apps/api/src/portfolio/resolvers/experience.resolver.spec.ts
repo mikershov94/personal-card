@@ -4,13 +4,13 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CreateExperienceDto } from '../dto/create-experience.input.dto';
 import { UpdateExperienceDto } from '../dto/update-experience.input.dto';
 import { ExperienceEntity } from '../entities/experience.entity';
-import { PortfolioService } from '../portfolio.service';
+import { ExperienceService } from '../services/experience.service';
 import { ExperienceResolver } from './experience.resolver';
 
 describe('ExperienceResolver', () => {
     let resolver: ExperienceResolver;
 
-    const portfolioServiceMock = {
+    const experienceServiceMock = {
         createExperience: jest.fn(),
         updateExperience: jest.fn(),
         deleteExperience: jest.fn(),
@@ -27,6 +27,7 @@ describe('ExperienceResolver', () => {
         sortOrder: 0,
         createdAt: new Date('2026-08-30T00:00:00.000Z'),
         updatedAt: new Date('2026-08-30T00:00:00.000Z'),
+        projects: [],
     };
 
     beforeEach(async () => {
@@ -35,7 +36,7 @@ describe('ExperienceResolver', () => {
         const module: TestingModule = await Test.createTestingModule({
             providers: [
                 ExperienceResolver,
-                { provide: PortfolioService, useValue: portfolioServiceMock },
+                { provide: ExperienceService, useValue: experienceServiceMock },
             ],
         }).compile();
 
@@ -57,15 +58,15 @@ describe('ExperienceResolver', () => {
         };
 
         it('должен делегировать создание опыта сервису', async () => {
-            portfolioServiceMock.createExperience.mockResolvedValue(experience);
+            experienceServiceMock.createExperience.mockResolvedValue(experience);
 
             await expect(resolver.createExperience(dto)).resolves.toEqual(experience);
-            expect(portfolioServiceMock.createExperience).toHaveBeenCalledWith(dto);
+            expect(experienceServiceMock.createExperience).toHaveBeenCalledWith(dto);
         });
 
         it('должен пробросить ошибку сервиса', async () => {
             const error = new NotFoundException('Профиль пуст');
-            portfolioServiceMock.createExperience.mockRejectedValue(error);
+            experienceServiceMock.createExperience.mockRejectedValue(error);
 
             await expect(resolver.createExperience(dto)).rejects.toBe(error);
         });
@@ -76,17 +77,17 @@ describe('ExperienceResolver', () => {
 
         it('должен делегировать обновление опыта сервису', async () => {
             const updatedExperience = { ...experience, ...dto };
-            portfolioServiceMock.updateExperience.mockResolvedValue(updatedExperience);
+            experienceServiceMock.updateExperience.mockResolvedValue(updatedExperience);
 
             await expect(resolver.updateExperience(experience.id, dto)).resolves.toEqual(
                 updatedExperience,
             );
-            expect(portfolioServiceMock.updateExperience).toHaveBeenCalledWith(experience.id, dto);
+            expect(experienceServiceMock.updateExperience).toHaveBeenCalledWith(experience.id, dto);
         });
 
         it('должен пробросить ошибку сервиса', async () => {
             const error = new NotFoundException('Запись об опыте не найдена');
-            portfolioServiceMock.updateExperience.mockRejectedValue(error);
+            experienceServiceMock.updateExperience.mockRejectedValue(error);
 
             await expect(resolver.updateExperience(experience.id, dto)).rejects.toBe(error);
         });
@@ -94,15 +95,15 @@ describe('ExperienceResolver', () => {
 
     describe('deleteExperience', () => {
         it('должен удалить опыт и вернуть true', async () => {
-            portfolioServiceMock.deleteExperience.mockResolvedValue(undefined);
+            experienceServiceMock.deleteExperience.mockResolvedValue(undefined);
 
             await expect(resolver.deleteExperience(experience.id)).resolves.toBe(true);
-            expect(portfolioServiceMock.deleteExperience).toHaveBeenCalledWith(experience.id);
+            expect(experienceServiceMock.deleteExperience).toHaveBeenCalledWith(experience.id);
         });
 
         it('должен пробросить ошибку сервиса', async () => {
             const error = new NotFoundException('Запись об опыте не найдена');
-            portfolioServiceMock.deleteExperience.mockRejectedValue(error);
+            experienceServiceMock.deleteExperience.mockRejectedValue(error);
 
             await expect(resolver.deleteExperience(experience.id)).rejects.toBe(error);
         });

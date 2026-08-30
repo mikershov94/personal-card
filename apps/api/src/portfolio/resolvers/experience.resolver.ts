@@ -3,17 +3,17 @@ import { Args, ID, Mutation, Resolver } from '@nestjs/graphql';
 import { CreateExperienceDto } from '../dto/create-experience.input.dto';
 import { UpdateExperienceDto } from '../dto/update-experience.input.dto';
 import { ExperienceEntity } from '../entities/experience.entity';
-import { PortfolioService } from '../portfolio.service';
+import { ExperienceService } from '../services/experience.service';
 
 @Resolver(() => ExperienceEntity)
 export class ExperienceResolver {
-    constructor(private readonly portfolioService: PortfolioService) {}
+    constructor(private readonly experienceService: ExperienceService) {}
 
     @Mutation(() => ExperienceEntity)
     public createExperience(
         @Args('input', { type: () => CreateExperienceDto }) dto: CreateExperienceDto,
     ): Promise<ExperienceEntity> {
-        return this.portfolioService.createExperience(dto);
+        return this.experienceService.createExperience(dto);
     }
 
     @Mutation(() => ExperienceEntity)
@@ -21,12 +21,12 @@ export class ExperienceResolver {
         @Args('id', { type: () => ID }) id: string,
         @Args('input', { type: () => UpdateExperienceDto }) dto: UpdateExperienceDto,
     ): Promise<ExperienceEntity> {
-        return this.portfolioService.updateExperience(id, dto);
+        return this.experienceService.updateExperience(id, dto);
     }
 
     @Mutation(() => Boolean)
     public async deleteExperience(@Args('id', { type: () => ID }) id: string): Promise<boolean> {
-        await this.portfolioService.deleteExperience(id);
+        await this.experienceService.deleteExperience(id);
 
         return true;
     }

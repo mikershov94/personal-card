@@ -47,6 +47,26 @@ const SKILL_ERRORS = {
         exception: InternalServerErrorException,
         message: 'Не удалось удалить навык из профиля',
     },
+    alreadyAttachedToProject: {
+        exception: ConflictException,
+        message: 'Навык уже добавлен в проект',
+    },
+    projectOrSkillNotFound: {
+        exception: NotFoundException,
+        message: 'Проект или навык не найден',
+    },
+    attachToProjectFailed: {
+        exception: InternalServerErrorException,
+        message: 'Не удалось добавить навык в проект',
+    },
+    notAttachedToProject: {
+        exception: NotFoundException,
+        message: 'Навык не добавлен в проект',
+    },
+    detachFromProjectFailed: {
+        exception: InternalServerErrorException,
+        message: 'Не удалось удалить навык из проекта',
+    },
 } as const;
 
 export const CREATE_SKILL_ERROR_CONFIG: PrismaErrorConfig = {
@@ -89,4 +109,19 @@ export const DETACH_SKILL_ERROR_CONFIG: PrismaErrorConfig = {
         P2025: SKILL_ERRORS.notAttached,
     },
     fallback: SKILL_ERRORS.detachFailed,
+};
+
+export const ATTACH_SKILL_TO_PROJECT_ERROR_CONFIG: PrismaErrorConfig = {
+    mappings: {
+        P2002: SKILL_ERRORS.alreadyAttachedToProject,
+        P2003: SKILL_ERRORS.projectOrSkillNotFound,
+    },
+    fallback: SKILL_ERRORS.attachToProjectFailed,
+};
+
+export const DETACH_SKILL_FROM_PROJECT_ERROR_CONFIG: PrismaErrorConfig = {
+    mappings: {
+        P2025: SKILL_ERRORS.notAttachedToProject,
+    },
+    fallback: SKILL_ERRORS.detachFromProjectFailed,
 };

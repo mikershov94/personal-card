@@ -4,18 +4,20 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CreateSkillDto } from '../dto/create-skill.input.dto';
 import { UpdateSkillDto } from '../dto/update-skill.input.dto';
 import { SkillEntity } from '../entities/skill.entity';
-import { PortfolioService } from '../portfolio.service';
+import { SkillService } from '../services/skill.service';
 import { SkillResolver } from './skill.resolver';
 
 describe('SkillResolver', () => {
     let resolver: SkillResolver;
 
-    const portfolioServiceMock = {
+    const skillServiceMock = {
         createSkill: jest.fn(),
         updateSkill: jest.fn(),
         deleteSkill: jest.fn(),
         attachSkillToProfile: jest.fn(),
         detachSkillFromProfile: jest.fn(),
+        attachSkillToProject: jest.fn(),
+        detachSkillFromProject: jest.fn(),
     };
 
     const skill: SkillEntity = {
@@ -29,10 +31,7 @@ describe('SkillResolver', () => {
         jest.resetAllMocks();
 
         const module: TestingModule = await Test.createTestingModule({
-            providers: [
-                SkillResolver,
-                { provide: PortfolioService, useValue: portfolioServiceMock },
-            ],
+            providers: [SkillResolver, { provide: SkillService, useValue: skillServiceMock }],
         }).compile();
 
         resolver = module.get<SkillResolver>(SkillResolver);
@@ -46,15 +45,15 @@ describe('SkillResolver', () => {
         const dto: CreateSkillDto = { name: skill.name };
 
         it('должен делегировать создание навыка сервису', async () => {
-            portfolioServiceMock.createSkill.mockResolvedValue(skill);
+            skillServiceMock.createSkill.mockResolvedValue(skill);
 
             await expect(resolver.createSkill(dto)).resolves.toEqual(skill);
-            expect(portfolioServiceMock.createSkill).toHaveBeenCalledWith(dto);
+            expect(skillServiceMock.createSkill).toHaveBeenCalledWith(dto);
         });
 
         it('должен пробросить ошибку сервиса', async () => {
             const error = new ConflictException('Навык с таким названием уже существует');
-            portfolioServiceMock.createSkill.mockRejectedValue(error);
+            skillServiceMock.createSkill.mockRejectedValue(error);
 
             await expect(resolver.createSkill(dto)).rejects.toBe(error);
         });
@@ -65,15 +64,15 @@ describe('SkillResolver', () => {
 
         it('должен делегировать обновление навыка сервису', async () => {
             const updatedSkill = { ...skill, ...dto };
-            portfolioServiceMock.updateSkill.mockResolvedValue(updatedSkill);
+            skillServiceMock.updateSkill.mockResolvedValue(updatedSkill);
 
             await expect(resolver.updateSkill(skill.id, dto)).resolves.toEqual(updatedSkill);
-            expect(portfolioServiceMock.updateSkill).toHaveBeenCalledWith(skill.id, dto);
+            expect(skillServiceMock.updateSkill).toHaveBeenCalledWith(skill.id, dto);
         });
 
         it('должен пробросить ошибку сервиса', async () => {
             const error = new NotFoundException('Навык не найден');
-            portfolioServiceMock.updateSkill.mockRejectedValue(error);
+            skillServiceMock.updateSkill.mockRejectedValue(error);
 
             await expect(resolver.updateSkill(skill.id, dto)).rejects.toBe(error);
         });
@@ -81,15 +80,15 @@ describe('SkillResolver', () => {
 
     describe('deleteSkill', () => {
         it('должен удалить навык и вернуть true', async () => {
-            portfolioServiceMock.deleteSkill.mockResolvedValue(undefined);
+            skillServiceMock.deleteSkill.mockResolvedValue(undefined);
 
             await expect(resolver.deleteSkill(skill.id)).resolves.toBe(true);
-            expect(portfolioServiceMock.deleteSkill).toHaveBeenCalledWith(skill.id);
+            expect(skillServiceMock.deleteSkill).toHaveBeenCalledWith(skill.id);
         });
 
         it('должен пробросить ошибку сервиса', async () => {
             const error = new NotFoundException('Навык не найден');
-            portfolioServiceMock.deleteSkill.mockRejectedValue(error);
+            skillServiceMock.deleteSkill.mockRejectedValue(error);
 
             await expect(resolver.deleteSkill(skill.id)).rejects.toBe(error);
         });
@@ -97,15 +96,15 @@ describe('SkillResolver', () => {
 
     describe('attachSkillToProfile', () => {
         it('должен привязать навык с порядком и вернуть true', async () => {
-            portfolioServiceMock.attachSkillToProfile.mockResolvedValue(undefined);
+            skillServiceMock.attachSkillToProfile.mockResolvedValue(undefined);
 
             await expect(resolver.attachSkillToProfile(skill.id, 2)).resolves.toBe(true);
-            expect(portfolioServiceMock.attachSkillToProfile).toHaveBeenCalledWith(skill.id, 2);
+            expect(skillServiceMock.attachSkillToProfile).toHaveBeenCalledWith(skill.id, 2);
         });
 
         it('должен пробросить ошибку сервиса', async () => {
             const error = new ConflictException('Навык уже добавлен в профиль');
-            portfolioServiceMock.attachSkillToProfile.mockRejectedValue(error);
+            skillServiceMock.attachSkillToProfile.mockRejectedValue(error);
 
             await expect(resolver.attachSkillToProfile(skill.id, 0)).rejects.toBe(error);
         });
@@ -113,17 +112,60 @@ describe('SkillResolver', () => {
 
     describe('detachSkillFromProfile', () => {
         it('должен отвязать навык и вернуть true', async () => {
-            portfolioServiceMock.detachSkillFromProfile.mockResolvedValue(undefined);
+            skillServiceMock.detachSkillFromProfile.mockResolvedValue(undefined);
 
             await expect(resolver.detachSkillFromProfile(skill.id)).resolves.toBe(true);
-            expect(portfolioServiceMock.detachSkillFromProfile).toHaveBeenCalledWith(skill.id);
+            expect(skillServiceMock.detachSkillFromProfile).toHaveBeenCalledWith(skill.id);
         });
 
         it('должен пробросить ошибку сервиса', async () => {
             const error = new NotFoundException('Навык не добавлен в профиль');
-            portfolioServiceMock.detachSkillFromProfile.mockRejectedValue(error);
+            skillServiceMock.detachSkillFromProfile.mockRejectedValue(error);
 
             await expect(resolver.detachSkillFromProfile(skill.id)).rejects.toBe(error);
+        });
+    });
+
+    describe('attachSkillToProject', () => {
+        const projectId = '62fa4202-7d54-4b3b-94df-df8d880b157d';
+
+        it('должен привязать навык к проекту с порядком и вернуть true', async () => {
+            skillServiceMock.attachSkillToProject.mockResolvedValue(undefined);
+
+            await expect(resolver.attachSkillToProject(projectId, skill.id, 2)).resolves.toBe(true);
+            expect(skillServiceMock.attachSkillToProject).toHaveBeenCalledWith(
+                projectId,
+                skill.id,
+                2,
+            );
+        });
+
+        it('должен пробросить ошибку сервиса', async () => {
+            const error = new ConflictException('Навык уже добавлен в проект');
+            skillServiceMock.attachSkillToProject.mockRejectedValue(error);
+
+            await expect(resolver.attachSkillToProject(projectId, skill.id, 0)).rejects.toBe(error);
+        });
+    });
+
+    describe('detachSkillFromProject', () => {
+        const projectId = '62fa4202-7d54-4b3b-94df-df8d880b157d';
+
+        it('должен отвязать навык от проекта и вернуть true', async () => {
+            skillServiceMock.detachSkillFromProject.mockResolvedValue(undefined);
+
+            await expect(resolver.detachSkillFromProject(projectId, skill.id)).resolves.toBe(true);
+            expect(skillServiceMock.detachSkillFromProject).toHaveBeenCalledWith(
+                projectId,
+                skill.id,
+            );
+        });
+
+        it('должен пробросить ошибку сервиса', async () => {
+            const error = new NotFoundException('Навык не добавлен в проект');
+            skillServiceMock.detachSkillFromProject.mockRejectedValue(error);
+
+            await expect(resolver.detachSkillFromProject(projectId, skill.id)).rejects.toBe(error);
         });
     });
 });

@@ -1,0 +1,30 @@
+model Project {
+  id            String   @id @default(uuid())
+  profileId     String
+  experienceId  String?
+  title         String
+  description   String
+  url           String?
+  repositoryUrl String?
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  profile    Profile        @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  experience Experience?    @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+  skills     ProjectSkill[]
+
+  @@index([profileId, experienceId, sortOrder, title, id])
+}
+
+model ProjectSkill {
+  projectId String
+  skillId   String
+  sortOrder Int    @default(0)
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  skill   Skill   @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([projectId, skillId])
+  @@index([projectId, sortOrder, skillId])
+}

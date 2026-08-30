@@ -13,6 +13,27 @@ describe('ProfileRepository', () => {
     const profileInclude = {
         experiences: {
             orderBy: [{ sortOrder: 'asc' }, { startedAt: 'desc' }, { createdAt: 'asc' }],
+            include: {
+                projects: {
+                    orderBy: [{ sortOrder: 'asc' }, { title: 'asc' }, { id: 'asc' }],
+                    include: {
+                        skills: {
+                            orderBy: [{ sortOrder: 'asc' }, { skillId: 'asc' }],
+                            include: { skill: true },
+                        },
+                    },
+                },
+            },
+        },
+        projects: {
+            where: { experienceId: null },
+            orderBy: [{ sortOrder: 'asc' }, { title: 'asc' }, { id: 'asc' }],
+            include: {
+                skills: {
+                    orderBy: [{ sortOrder: 'asc' }, { skillId: 'asc' }],
+                    include: { skill: true },
+                },
+            },
         },
         skills: {
             orderBy: [{ sortOrder: 'asc' }, { skillId: 'asc' }],
@@ -40,6 +61,37 @@ describe('ProfileRepository', () => {
         sortOrder: 0,
         createdAt: new Date('2026-08-30T00:00:00.000Z'),
         updatedAt: new Date('2026-08-30T00:00:00.000Z'),
+        projects: [],
+    };
+
+    const projectSkill = {
+        sortOrder: 0,
+        skill: {
+            id: '937a60fb-3d23-49e2-84f6-ed4d40df31c7',
+            name: 'TypeScript',
+            createdAt: new Date('2026-08-30T00:00:00.000Z'),
+            updatedAt: new Date('2026-08-30T00:00:00.000Z'),
+        },
+    };
+
+    const personalProject = {
+        id: '62fa4202-7d54-4b3b-94df-df8d880b157d',
+        experienceId: null,
+        title: 'Personal Card',
+        description: 'Portfolio application with GraphQL API.',
+        url: 'https://example.com',
+        repositoryUrl: 'https://github.com/example/personal-card',
+        sortOrder: 0,
+        createdAt: new Date('2026-08-30T00:00:00.000Z'),
+        updatedAt: new Date('2026-08-30T00:00:00.000Z'),
+        skills: [projectSkill],
+    };
+
+    const experienceProject = {
+        ...personalProject,
+        id: '6925e347-b136-460e-89bd-04eb230863d1',
+        experienceId: experience.id,
+        title: 'Work Project',
     };
 
     const profile = {
@@ -51,18 +103,9 @@ describe('ProfileRepository', () => {
         avatarUrl: '/images/profile/avatar.webp',
         createdAt: new Date('2026-08-30T00:00:00.000Z'),
         updatedAt: new Date('2026-08-30T00:00:00.000Z'),
-        experiences: [experience],
-        skills: [
-            {
-                sortOrder: 0,
-                skill: {
-                    id: '937a60fb-3d23-49e2-84f6-ed4d40df31c7',
-                    name: 'TypeScript',
-                    createdAt: new Date('2026-08-30T00:00:00.000Z'),
-                    updatedAt: new Date('2026-08-30T00:00:00.000Z'),
-                },
-            },
-        ],
+        experiences: [{ ...experience, projects: [experienceProject] }],
+        projects: [personalProject],
+        skills: [projectSkill],
     };
 
     beforeEach(async () => {
@@ -177,6 +220,7 @@ describe('ProfileRepository', () => {
             createdAt: profile.createdAt,
             updatedAt: profile.updatedAt,
             experiences: profile.experiences,
+            projects: profile.projects,
             skills: profile.skills,
         };
 
@@ -210,7 +254,7 @@ describe('ProfileRepository', () => {
     });
 
     describe('getProfile', () => {
-        it('должен вернуть основной профиль', async () => {
+        it('должен вернуть основной профиль с личными и связанными с опытом проектами', async () => {
             prismaServiceMock.profile.findUnique.mockResolvedValue(profile);
 
             await expect(repository.getProfile()).resolves.toEqual(profile);

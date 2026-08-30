@@ -2,6 +2,7 @@ import { Field, GraphQLISODateTime, ID, ObjectType } from '@nestjs/graphql';
 
 import { ExperienceEntity } from './experience.entity';
 import { ProfileSkillEntity } from './profile-skill.entity';
+import { ProjectEntity } from './project.entity';
 
 @ObjectType('Profile')
 export class ProfileEntity {
@@ -31,6 +32,9 @@ export class ProfileEntity {
 
     @Field(() => [ExperienceEntity])
     experiences!: ExperienceEntity[];
+
+    @Field(() => [ProjectEntity])
+    projects!: ProjectEntity[];
 
     @Field(() => [ProfileSkillEntity])
     skills!: ProfileSkillEntity[];
