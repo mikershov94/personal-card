@@ -5,11 +5,11 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { AppController } from './app.controller';
 import { AppResolver } from './app.resolver';
 import { AppService } from './app.service';
+import { AuthModule } from './auth/auth.module';
 import { HealthModule } from './health/health.module';
 import { InquiriesModule } from './inquiries/inquiries.module';
 import { PortfolioModule } from './portfolio/portfolio.module';
 import { PrismaModule } from './prisma/prisma.module';
-import { AuthModule } from './auth/auth.module';
 
 @Module({
     imports: [
