@@ -25,6 +25,22 @@ export type UpdateExperienceData = Partial<CreateExperienceData>;
 
 @Injectable()
 export class ExperienceRepository {
+    private readonly experienceInclude = {
+        projects: {
+            orderBy: [
+                { sortOrder: 'asc' as const },
+                { title: 'asc' as const },
+                { id: 'asc' as const },
+            ],
+            include: {
+                skills: {
+                    orderBy: [{ sortOrder: 'asc' as const }, { skillId: 'asc' as const }],
+                    include: { skill: true },
+                },
+            },
+        },
+    };
+
     constructor(private readonly prismaService: PrismaService) {}
 
     public async createExperience(data: CreateExperienceData): Promise<ExperienceEntity> {
@@ -35,6 +51,7 @@ export class ExperienceRepository {
                     profileId: MAIN_PROFILE_ID,
                     sortOrder: data.sortOrder ?? 0,
                 },
+                include: this.experienceInclude,
             });
         } catch (error: unknown) {
             throw mapPrismaError(error, CREATE_EXPERIENCE_ERROR_CONFIG);
@@ -49,6 +66,7 @@ export class ExperienceRepository {
             return await this.prismaService.experience.update({
                 where: { id, profileId: MAIN_PROFILE_ID },
                 data,
+                include: this.experienceInclude,
             });
         } catch (error: unknown) {
             throw mapPrismaError(error, UPDATE_EXPERIENCE_ERROR_CONFIG);
@@ -59,6 +77,7 @@ export class ExperienceRepository {
         try {
             return await this.prismaService.experience.delete({
                 where: { id, profileId: MAIN_PROFILE_ID },
+                include: this.experienceInclude,
             });
         } catch (error: unknown) {
             throw mapPrismaError(error, DELETE_EXPERIENCE_ERROR_CONFIG);
@@ -71,6 +90,7 @@ export class ExperienceRepository {
         try {
             experience = await this.prismaService.experience.findFirst({
                 where: { id, profileId: MAIN_PROFILE_ID },
+                include: this.experienceInclude,
             });
         } catch (error: unknown) {
             throw mapPrismaError(error, GET_EXPERIENCE_ERROR_CONFIG);

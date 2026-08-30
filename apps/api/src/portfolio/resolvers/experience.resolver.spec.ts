@@ -27,6 +27,7 @@ describe('ExperienceResolver', () => {
         sortOrder: 0,
         createdAt: new Date('2026-08-30T00:00:00.000Z'),
         updatedAt: new Date('2026-08-30T00:00:00.000Z'),
+        projects: [],
     };
 
     beforeEach(async () => {
