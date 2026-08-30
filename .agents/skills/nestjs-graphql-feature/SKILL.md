@@ -77,6 +77,11 @@ changed files, and exact verification command, then stop for user review.
   `PrismaService`.
 - Verify observable results, delegated arguments, and error propagation without testing private
   implementation details.
+- Repository code translates recognized persistence failures into concrete NestJS exceptions with
+  domain-appropriate messages and hides unknown infrastructure failures behind
+  `InternalServerErrorException`. Repository tests simulate the persistence condition and assert
+  the exact public exception type and message; do not use a generic `Error` as the expected
+  repository outcome.
 - E2E tests call the real HTTP/GraphQL endpoint and verify PostgreSQL state when persistence is
   part of the scenario.
 - Keep e2e data isolated and cleaned between tests.
