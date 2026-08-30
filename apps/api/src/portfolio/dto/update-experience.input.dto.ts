@@ -1,5 +1,5 @@
-import { Field, GraphQLISODateTime, InputType } from '@nestjs/graphql';
-import { IsDate, IsOptional, IsString, Length } from 'class-validator';
+import { Field, GraphQLISODateTime, InputType, Int } from '@nestjs/graphql';
+import { IsDate, IsInt, IsOptional, IsString, Length, Min } from 'class-validator';
 
 @InputType('UpdateExperienceInput')
 export class UpdateExperienceDto {
@@ -15,19 +15,31 @@ export class UpdateExperienceDto {
     @Length(2, 150)
     position?: string;
 
-    @Field({ nullable: true })
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    @Length(2, 100)
+    location?: string | null;
+
+    @Field(() => String, { nullable: true })
     @IsOptional()
     @IsString()
     @Length(10, 2000)
-    description?: string;
+    description?: string | null;
 
     @Field(() => GraphQLISODateTime, { nullable: true })
     @IsOptional()
     @IsDate()
-    startDate?: Date;
+    startedAt?: Date;
 
     @Field(() => GraphQLISODateTime, { nullable: true })
     @IsOptional()
     @IsDate()
-    endDate?: Date | null;
+    endedAt?: Date | null;
+
+    @Field(() => Int, { nullable: true })
+    @IsOptional()
+    @IsInt()
+    @Min(0)
+    sortOrder?: number;
 }
