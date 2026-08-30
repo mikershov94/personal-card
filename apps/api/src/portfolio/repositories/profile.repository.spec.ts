@@ -10,9 +10,13 @@ describe('ProfileRepository', () => {
     const prismaError = (code: string): Error & { code: string } =>
         Object.assign(new Error(`Prisma error ${code}`), { code });
 
-    const experiencesInclude = {
+    const profileInclude = {
         experiences: {
             orderBy: [{ sortOrder: 'asc' }, { startedAt: 'desc' }, { createdAt: 'asc' }],
+        },
+        skills: {
+            orderBy: [{ sortOrder: 'asc' }, { skillId: 'asc' }],
+            include: { skill: true },
         },
     };
 
@@ -48,6 +52,17 @@ describe('ProfileRepository', () => {
         createdAt: new Date('2026-08-30T00:00:00.000Z'),
         updatedAt: new Date('2026-08-30T00:00:00.000Z'),
         experiences: [experience],
+        skills: [
+            {
+                sortOrder: 0,
+                skill: {
+                    id: '937a60fb-3d23-49e2-84f6-ed4d40df31c7',
+                    name: 'TypeScript',
+                    createdAt: new Date('2026-08-30T00:00:00.000Z'),
+                    updatedAt: new Date('2026-08-30T00:00:00.000Z'),
+                },
+            },
+        ],
     };
 
     beforeEach(async () => {
@@ -86,7 +101,7 @@ describe('ProfileRepository', () => {
             expect(prismaServiceMock.profile.create).toHaveBeenCalledTimes(1);
             expect(prismaServiceMock.profile.create).toHaveBeenCalledWith({
                 data: createProfileData,
-                include: experiencesInclude,
+                include: profileInclude,
             });
         });
 
@@ -129,7 +144,7 @@ describe('ProfileRepository', () => {
             expect(prismaServiceMock.profile.update).toHaveBeenCalledWith({
                 where: { id: 'main' },
                 data: updateProfileData,
-                include: experiencesInclude,
+                include: profileInclude,
             });
         });
 
@@ -162,6 +177,7 @@ describe('ProfileRepository', () => {
             createdAt: profile.createdAt,
             updatedAt: profile.updatedAt,
             experiences: profile.experiences,
+            skills: profile.skills,
         };
 
         it('должен удалить основной профиль', async () => {
@@ -171,7 +187,7 @@ describe('ProfileRepository', () => {
             expect(prismaServiceMock.profile.delete).toHaveBeenCalledTimes(1);
             expect(prismaServiceMock.profile.delete).toHaveBeenCalledWith({
                 where: { id: 'main' },
-                include: experiencesInclude,
+                include: profileInclude,
             });
         });
 
@@ -201,7 +217,7 @@ describe('ProfileRepository', () => {
             expect(prismaServiceMock.profile.findUnique).toHaveBeenCalledTimes(1);
             expect(prismaServiceMock.profile.findUnique).toHaveBeenCalledWith({
                 where: { id: 'main' },
-                include: experiencesInclude,
+                include: profileInclude,
             });
         });
 
@@ -214,7 +230,7 @@ describe('ProfileRepository', () => {
             expect(prismaServiceMock.profile.findUnique).toHaveBeenCalledTimes(1);
             expect(prismaServiceMock.profile.findUnique).toHaveBeenCalledWith({
                 where: { id: 'main' },
-                include: experiencesInclude,
+                include: profileInclude,
             });
         });
 

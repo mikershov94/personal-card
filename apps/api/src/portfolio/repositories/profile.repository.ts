@@ -38,6 +38,10 @@ export class ProfileRepository {
                             { createdAt: 'asc' },
                         ],
                     },
+                    skills: {
+                        orderBy: [{ sortOrder: 'asc' }, { skillId: 'asc' }],
+                        include: { skill: true },
+                    },
                 },
             });
         } catch (error: unknown) {
@@ -58,6 +62,10 @@ export class ProfileRepository {
                             { createdAt: 'asc' },
                         ],
                     },
+                    skills: {
+                        orderBy: [{ sortOrder: 'asc' }, { skillId: 'asc' }],
+                        include: { skill: true },
+                    },
                 },
             });
         } catch (error: unknown) {
@@ -76,6 +84,10 @@ export class ProfileRepository {
                             { startedAt: 'desc' },
                             { createdAt: 'asc' },
                         ],
+                    },
+                    skills: {
+                        orderBy: [{ sortOrder: 'asc' }, { skillId: 'asc' }],
+                        include: { skill: true },
                     },
                 },
             });
@@ -97,6 +109,10 @@ export class ProfileRepository {
                             { startedAt: 'desc' },
                             { createdAt: 'asc' },
                         ],
+                    },
+                    skills: {
+                        orderBy: [{ sortOrder: 'asc' }, { skillId: 'asc' }],
+                        include: { skill: true },
                     },
                 },
             });

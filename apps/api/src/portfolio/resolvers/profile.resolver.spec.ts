@@ -26,6 +26,7 @@ describe('ProfileResolver', () => {
         createdAt: new Date('2026-08-30T00:00:00.000Z'),
         updatedAt: new Date('2026-08-30T00:00:00.000Z'),
         experiences: [],
+        skills: [],
     };
 
     beforeEach(async () => {

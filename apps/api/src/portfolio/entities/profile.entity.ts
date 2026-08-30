@@ -33,5 +33,5 @@ export class ProfileEntity {
     experiences!: ExperienceEntity[];
 
     @Field(() => [ProfileSkillEntity])
-    skills?: ProfileSkillEntity[];
+    skills!: ProfileSkillEntity[];
 }
