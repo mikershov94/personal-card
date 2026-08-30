@@ -16,7 +16,7 @@ export type UpdateProfileData = Partial<CreateProfileData>;
 export const MAIN_PROFILE_ID = 'main' as const;
 
 @Injectable()
-export class PortfolioRepository {
+export class ProfileRepository {
     constructor(private readonly prismaService: PrismaService) {}
 
     public async createProfile(data: CreateProfileData): Promise<ProfileEntity> {

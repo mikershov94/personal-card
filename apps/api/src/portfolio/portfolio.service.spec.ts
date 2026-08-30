@@ -5,12 +5,12 @@ import { CreateProfileDto } from './dto/create-profile.input.dto';
 import { UpdateProfileDto } from './dto/update-profile.input.dto';
 import { ProfileEntity } from './entities/profile.entity';
 import { PortfolioService } from './portfolio.service';
-import { PortfolioRepository } from './repositories/portfolio.repository';
+import { ProfileRepository } from './repositories/profile.repository';
 
 describe('PortfolioService', () => {
     let service: PortfolioService;
 
-    const portfolioRepositoryMock = {
+    const profileRepositoryMock = {
         createProfile: jest.fn(),
         updatedProfile: jest.fn(),
         deleteProfile: jest.fn(),
@@ -35,8 +35,8 @@ describe('PortfolioService', () => {
             providers: [
                 PortfolioService,
                 {
-                    provide: PortfolioRepository,
-                    useValue: portfolioRepositoryMock,
+                    provide: ProfileRepository,
+                    useValue: profileRepositoryMock,
                 },
             ],
         }).compile();
@@ -58,20 +58,20 @@ describe('PortfolioService', () => {
         };
 
         it('должен создать и вернуть профиль', async () => {
-            portfolioRepositoryMock.createProfile.mockResolvedValue(profile);
+            profileRepositoryMock.createProfile.mockResolvedValue(profile);
 
             await expect(service.createProfile(createProfileDto)).resolves.toEqual(profile);
-            expect(portfolioRepositoryMock.createProfile).toHaveBeenCalledTimes(1);
-            expect(portfolioRepositoryMock.createProfile).toHaveBeenCalledWith(createProfileDto);
+            expect(profileRepositoryMock.createProfile).toHaveBeenCalledTimes(1);
+            expect(profileRepositoryMock.createProfile).toHaveBeenCalledWith(createProfileDto);
         });
 
         it('должен пробросить ошибку репозитория', async () => {
             const error = new Error('Не удалось создать профиль');
-            portfolioRepositoryMock.createProfile.mockRejectedValue(error);
+            profileRepositoryMock.createProfile.mockRejectedValue(error);
 
             await expect(service.createProfile(createProfileDto)).rejects.toBe(error);
-            expect(portfolioRepositoryMock.createProfile).toHaveBeenCalledTimes(1);
-            expect(portfolioRepositoryMock.createProfile).toHaveBeenCalledWith(createProfileDto);
+            expect(profileRepositoryMock.createProfile).toHaveBeenCalledTimes(1);
+            expect(profileRepositoryMock.createProfile).toHaveBeenCalledWith(createProfileDto);
         });
     });
 
@@ -87,58 +87,58 @@ describe('PortfolioService', () => {
                 ...updateProfileDto,
                 updatedAt: new Date('2026-08-30T01:00:00.000Z'),
             };
-            portfolioRepositoryMock.updatedProfile.mockResolvedValue(updatedProfile);
+            profileRepositoryMock.updatedProfile.mockResolvedValue(updatedProfile);
 
             await expect(service.updateProfile(updateProfileDto)).resolves.toEqual(updatedProfile);
-            expect(portfolioRepositoryMock.updatedProfile).toHaveBeenCalledTimes(1);
-            expect(portfolioRepositoryMock.updatedProfile).toHaveBeenCalledWith(updateProfileDto);
+            expect(profileRepositoryMock.updatedProfile).toHaveBeenCalledTimes(1);
+            expect(profileRepositoryMock.updatedProfile).toHaveBeenCalledWith(updateProfileDto);
         });
 
         it('должен пробросить ошибку репозитория', async () => {
             const error = new Error('Не удалось обновить профиль');
-            portfolioRepositoryMock.updatedProfile.mockRejectedValue(error);
+            profileRepositoryMock.updatedProfile.mockRejectedValue(error);
 
             await expect(service.updateProfile(updateProfileDto)).rejects.toBe(error);
-            expect(portfolioRepositoryMock.updatedProfile).toHaveBeenCalledTimes(1);
-            expect(portfolioRepositoryMock.updatedProfile).toHaveBeenCalledWith(updateProfileDto);
+            expect(profileRepositoryMock.updatedProfile).toHaveBeenCalledTimes(1);
+            expect(profileRepositoryMock.updatedProfile).toHaveBeenCalledWith(updateProfileDto);
         });
     });
 
     describe('deleteProfile', () => {
         it('должен удалить профиль', async () => {
-            portfolioRepositoryMock.deleteProfile.mockResolvedValue(profile);
+            profileRepositoryMock.deleteProfile.mockResolvedValue(profile);
 
             await expect(service.deleteProfile()).resolves.toBeUndefined();
-            expect(portfolioRepositoryMock.deleteProfile).toHaveBeenCalledTimes(1);
-            expect(portfolioRepositoryMock.deleteProfile).toHaveBeenCalledWith();
+            expect(profileRepositoryMock.deleteProfile).toHaveBeenCalledTimes(1);
+            expect(profileRepositoryMock.deleteProfile).toHaveBeenCalledWith();
         });
 
         it('должен пробросить ошибку репозитория', async () => {
             const error = new Error('Не удалось удалить профиль');
-            portfolioRepositoryMock.deleteProfile.mockRejectedValue(error);
+            profileRepositoryMock.deleteProfile.mockRejectedValue(error);
 
             await expect(service.deleteProfile()).rejects.toBe(error);
-            expect(portfolioRepositoryMock.deleteProfile).toHaveBeenCalledTimes(1);
-            expect(portfolioRepositoryMock.deleteProfile).toHaveBeenCalledWith();
+            expect(profileRepositoryMock.deleteProfile).toHaveBeenCalledTimes(1);
+            expect(profileRepositoryMock.deleteProfile).toHaveBeenCalledWith();
         });
     });
 
     describe('getProfile', () => {
         it('должен вернуть профиль', async () => {
-            portfolioRepositoryMock.getProfile.mockResolvedValue(profile);
+            profileRepositoryMock.getProfile.mockResolvedValue(profile);
 
             await expect(service.getProfile()).resolves.toEqual(profile);
-            expect(portfolioRepositoryMock.getProfile).toHaveBeenCalledTimes(1);
-            expect(portfolioRepositoryMock.getProfile).toHaveBeenCalledWith();
+            expect(profileRepositoryMock.getProfile).toHaveBeenCalledTimes(1);
+            expect(profileRepositoryMock.getProfile).toHaveBeenCalledWith();
         });
 
         it('должен пробросить ошибку репозитория', async () => {
             const error = new NotFoundException('Профиль пуст');
-            portfolioRepositoryMock.getProfile.mockRejectedValue(error);
+            profileRepositoryMock.getProfile.mockRejectedValue(error);
 
             await expect(service.getProfile()).rejects.toBe(error);
-            expect(portfolioRepositoryMock.getProfile).toHaveBeenCalledTimes(1);
-            expect(portfolioRepositoryMock.getProfile).toHaveBeenCalledWith();
+            expect(profileRepositoryMock.getProfile).toHaveBeenCalledTimes(1);
+            expect(profileRepositoryMock.getProfile).toHaveBeenCalledWith();
         });
     });
 });

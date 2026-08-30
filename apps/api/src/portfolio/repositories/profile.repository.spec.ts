@@ -1,10 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 
 import { PrismaService } from '../../prisma/prisma.service';
-import { CreateProfileData, PortfolioRepository, UpdateProfileData } from './portfolio.repository';
+import { CreateProfileData, ProfileRepository, UpdateProfileData } from './profile.repository';
 
-describe('PortfolioRepository', () => {
-    let repository: PortfolioRepository;
+describe('ProfileRepository', () => {
+    let repository: ProfileRepository;
 
     const prismaServiceMock = {
         profile: {
@@ -31,7 +31,7 @@ describe('PortfolioRepository', () => {
 
         const module: TestingModule = await Test.createTestingModule({
             providers: [
-                PortfolioRepository,
+                ProfileRepository,
                 {
                     provide: PrismaService,
                     useValue: prismaServiceMock,
@@ -39,7 +39,7 @@ describe('PortfolioRepository', () => {
             ],
         }).compile();
 
-        repository = module.get<PortfolioRepository>(PortfolioRepository);
+        repository = module.get<ProfileRepository>(ProfileRepository);
     });
 
     it('должен быть определён', () => {
