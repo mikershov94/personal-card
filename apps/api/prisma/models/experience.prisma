@@ -11,7 +11,8 @@ model Experience {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profile  Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  projects Project[]
 
   @@index([profileId, sortOrder])
 }

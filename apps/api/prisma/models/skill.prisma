@@ -5,6 +5,7 @@ model Skill {
   updatedAt DateTime @updatedAt
 
   profiles ProfileSkill[]
+  projects ProjectSkill[]
 }
 
 model ProfileSkill {
