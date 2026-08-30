@@ -1,12 +1,14 @@
-import {
-    ConflictException,
-    Injectable,
-    InternalServerErrorException,
-    NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
+import { mapPrismaError } from '../../prisma/helpers/prisma-error.helper';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ProfileEntity } from '../entities/profile.entity';
+import {
+    CREATE_PROFILE_ERROR_CONFIG,
+    DELETE_PROFILE_ERROR_CONFIG,
+    GET_PROFILE_ERROR_CONFIG,
+    UPDATE_PROFILE_ERROR_CONFIG,
+} from './configs/profile-error.config';
 
 export interface CreateProfileData {
     displayName: string;
@@ -19,10 +21,6 @@ export interface CreateProfileData {
 export type UpdateProfileData = Partial<CreateProfileData>;
 
 export const MAIN_PROFILE_ID = 'main' as const;
-
-function hasPrismaErrorCode(error: unknown, code: string): boolean {
-    return typeof error === 'object' && error !== null && 'code' in error && error.code === code;
-}
 
 @Injectable()
 export class ProfileRepository {
@@ -43,11 +41,7 @@ export class ProfileRepository {
                 },
             });
         } catch (error: unknown) {
-            if (hasPrismaErrorCode(error, 'P2002')) {
-                throw new ConflictException('Профиль уже существует');
-            }
-
-            throw new InternalServerErrorException('Не удалось создать профиль');
+            throw mapPrismaError(error, CREATE_PROFILE_ERROR_CONFIG);
         }
     }
 
@@ -67,11 +61,7 @@ export class ProfileRepository {
                 },
             });
         } catch (error: unknown) {
-            if (hasPrismaErrorCode(error, 'P2025')) {
-                throw new NotFoundException('Профиль пуст');
-            }
-
-            throw new InternalServerErrorException('Не удалось обновить профиль');
+            throw mapPrismaError(error, UPDATE_PROFILE_ERROR_CONFIG);
         }
     }
 
@@ -90,11 +80,7 @@ export class ProfileRepository {
                 },
             });
         } catch (error: unknown) {
-            if (hasPrismaErrorCode(error, 'P2025')) {
-                throw new NotFoundException('Профиль пуст');
-            }
-
-            throw new InternalServerErrorException('Не удалось удалить профиль');
+            throw mapPrismaError(error, DELETE_PROFILE_ERROR_CONFIG);
         }
     }
 
@@ -114,8 +100,8 @@ export class ProfileRepository {
                     },
                 },
             });
-        } catch {
-            throw new InternalServerErrorException('Не удалось получить профиль');
+        } catch (error: unknown) {
+            throw mapPrismaError(error, GET_PROFILE_ERROR_CONFIG);
         }
 
         if (!profile) {

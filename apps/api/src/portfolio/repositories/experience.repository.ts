@@ -1,7 +1,14 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
+import { mapPrismaError } from '../../prisma/helpers/prisma-error.helper';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ExperienceEntity } from '../entities/experience.entity';
+import {
+    CREATE_EXPERIENCE_ERROR_CONFIG,
+    DELETE_EXPERIENCE_ERROR_CONFIG,
+    GET_EXPERIENCE_ERROR_CONFIG,
+    UPDATE_EXPERIENCE_ERROR_CONFIG,
+} from './configs/experience-error.config';
 import { MAIN_PROFILE_ID } from './profile.repository';
 
 export interface CreateExperienceData {
@@ -15,10 +22,6 @@ export interface CreateExperienceData {
 }
 
 export type UpdateExperienceData = Partial<CreateExperienceData>;
-
-function hasPrismaErrorCode(error: unknown, code: string): boolean {
-    return typeof error === 'object' && error !== null && 'code' in error && error.code === code;
-}
 
 @Injectable()
 export class ExperienceRepository {
@@ -34,11 +37,7 @@ export class ExperienceRepository {
                 },
             });
         } catch (error: unknown) {
-            if (hasPrismaErrorCode(error, 'P2003')) {
-                throw new NotFoundException('Профиль пуст');
-            }
-
-            throw new InternalServerErrorException('Не удалось создать запись об опыте');
+            throw mapPrismaError(error, CREATE_EXPERIENCE_ERROR_CONFIG);
         }
     }
 
@@ -52,11 +51,7 @@ export class ExperienceRepository {
                 data,
             });
         } catch (error: unknown) {
-            if (hasPrismaErrorCode(error, 'P2025')) {
-                throw new NotFoundException('Запись об опыте не найдена');
-            }
-
-            throw new InternalServerErrorException('Не удалось обновить запись об опыте');
+            throw mapPrismaError(error, UPDATE_EXPERIENCE_ERROR_CONFIG);
         }
     }
 
@@ -66,11 +61,7 @@ export class ExperienceRepository {
                 where: { id, profileId: MAIN_PROFILE_ID },
             });
         } catch (error: unknown) {
-            if (hasPrismaErrorCode(error, 'P2025')) {
-                throw new NotFoundException('Запись об опыте не найдена');
-            }
-
-            throw new InternalServerErrorException('Не удалось удалить запись об опыте');
+            throw mapPrismaError(error, DELETE_EXPERIENCE_ERROR_CONFIG);
         }
     }
 
@@ -81,8 +72,8 @@ export class ExperienceRepository {
             experience = await this.prismaService.experience.findFirst({
                 where: { id, profileId: MAIN_PROFILE_ID },
             });
-        } catch {
-            throw new InternalServerErrorException('Не удалось получить запись об опыте');
+        } catch (error: unknown) {
+            throw mapPrismaError(error, GET_EXPERIENCE_ERROR_CONFIG);
         }
 
         if (!experience) {

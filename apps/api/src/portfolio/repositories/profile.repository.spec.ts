@@ -98,6 +98,14 @@ describe('ProfileRepository', () => {
             );
             expect(prismaServiceMock.profile.create).toHaveBeenCalledTimes(1);
         });
+
+        it('должен скрыть неизвестную ошибку Prisma', async () => {
+            prismaServiceMock.profile.create.mockRejectedValue(new Error('Database error'));
+
+            await expect(repository.createProfile(createProfileData)).rejects.toEqual(
+                new InternalServerErrorException('Не удалось создать профиль'),
+            );
+        });
     });
 
     describe('updateProfile', () => {
@@ -133,6 +141,14 @@ describe('ProfileRepository', () => {
             );
             expect(prismaServiceMock.profile.update).toHaveBeenCalledTimes(1);
         });
+
+        it('должен скрыть неизвестную ошибку Prisma', async () => {
+            prismaServiceMock.profile.update.mockRejectedValue(new Error('Database error'));
+
+            await expect(repository.updateProfile(updateProfileData)).rejects.toEqual(
+                new InternalServerErrorException('Не удалось обновить профиль'),
+            );
+        });
     });
 
     describe('deleteProfile', () => {
@@ -166,6 +182,14 @@ describe('ProfileRepository', () => {
                 new NotFoundException('Профиль пуст'),
             );
             expect(prismaServiceMock.profile.delete).toHaveBeenCalledTimes(1);
+        });
+
+        it('должен скрыть неизвестную ошибку Prisma', async () => {
+            prismaServiceMock.profile.delete.mockRejectedValue(new Error('Database error'));
+
+            await expect(repository.deleteProfile()).rejects.toEqual(
+                new InternalServerErrorException('Не удалось удалить профиль'),
+            );
         });
     });
 
