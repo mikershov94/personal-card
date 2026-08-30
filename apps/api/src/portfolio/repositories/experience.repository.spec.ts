@@ -64,7 +64,6 @@ describe('ExperienceRepository', () => {
             description: experience.description,
             startedAt: experience.startedAt,
             endedAt: experience.endedAt,
-            sortOrder: experience.sortOrder,
         };
 
         it('должен создать и вернуть запись об опыте', async () => {
@@ -74,7 +73,7 @@ describe('ExperienceRepository', () => {
                 experience,
             );
             expect(prismaServiceMock.experience.create).toHaveBeenCalledWith({
-                data: { ...createExperienceData, profileId: 'main' },
+                data: { ...createExperienceData, profileId: 'main', sortOrder: 0 },
             });
         });
 
@@ -101,7 +100,7 @@ describe('ExperienceRepository', () => {
                 repository.updateExperience(experience.id, updateExperienceData),
             ).resolves.toEqual(updatedExperience);
             expect(prismaServiceMock.experience.update).toHaveBeenCalledWith({
-                where: { id: experience.id },
+                where: { id: experience.id, profileId: 'main' },
                 data: updateExperienceData,
             });
         });
@@ -121,7 +120,7 @@ describe('ExperienceRepository', () => {
 
             await expect(repository.deleteExperience(experience.id)).resolves.toEqual(experience);
             expect(prismaServiceMock.experience.delete).toHaveBeenCalledWith({
-                where: { id: experience.id },
+                where: { id: experience.id, profileId: 'main' },
             });
         });
 

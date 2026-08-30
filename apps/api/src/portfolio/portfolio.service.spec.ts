@@ -179,7 +179,6 @@ describe('PortfolioService', () => {
             description: experience.description,
             startedAt: experience.startedAt,
             endedAt: experience.endedAt,
-            sortOrder: experience.sortOrder,
         };
 
         it('должен создать и вернуть запись об опыте для основного профиля', async () => {
@@ -273,7 +272,7 @@ describe('PortfolioService', () => {
         });
 
         it('должен пробросить ошибку обновления Experience', async () => {
-            const error = new Error('Не удалось обновить запись об опыте');
+            const error = new NotFoundException('Запись об опыте не найдена');
             experienceRepositoryMock.getExperience.mockResolvedValue(experience);
             experienceRepositoryMock.updateExperience.mockRejectedValue(error);
 

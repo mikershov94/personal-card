@@ -27,7 +27,11 @@ export class ExperienceRepository {
     public async createExperience(data: CreateExperienceData): Promise<ExperienceEntity> {
         try {
             return await this.prismaService.experience.create({
-                data: { ...data, profileId: MAIN_PROFILE_ID },
+                data: {
+                    ...data,
+                    profileId: MAIN_PROFILE_ID,
+                    sortOrder: data.sortOrder ?? 0,
+                },
             });
         } catch (error: unknown) {
             if (hasPrismaErrorCode(error, 'P2003')) {
@@ -43,7 +47,10 @@ export class ExperienceRepository {
         data: UpdateExperienceData,
     ): Promise<ExperienceEntity> {
         try {
-            return await this.prismaService.experience.update({ where: { id }, data });
+            return await this.prismaService.experience.update({
+                where: { id, profileId: MAIN_PROFILE_ID },
+                data,
+            });
         } catch (error: unknown) {
             if (hasPrismaErrorCode(error, 'P2025')) {
                 throw new NotFoundException('Запись об опыте не найдена');
@@ -55,7 +62,9 @@ export class ExperienceRepository {
 
     public async deleteExperience(id: string): Promise<ExperienceEntity> {
         try {
-            return await this.prismaService.experience.delete({ where: { id } });
+            return await this.prismaService.experience.delete({
+                where: { id, profileId: MAIN_PROFILE_ID },
+            });
         } catch (error: unknown) {
             if (hasPrismaErrorCode(error, 'P2025')) {
                 throw new NotFoundException('Запись об опыте не найдена');
