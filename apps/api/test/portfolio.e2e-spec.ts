@@ -17,6 +17,19 @@ type ProfileResponse = {
     createdAt: string;
     updatedAt: string;
     experiences: ExperienceResponse[];
+    skills: ProfileSkillResponse[];
+};
+
+type ProfileSkillResponse = {
+    sortOrder: number;
+    skill: SkillResponse;
+};
+
+type SkillResponse = {
+    id: string;
+    name: string;
+    createdAt: string;
+    updatedAt: string;
 };
 
 type ExperienceResponse = {
@@ -57,6 +70,15 @@ const profileSelection = `
         sortOrder
         createdAt
         updatedAt
+    }
+    skills {
+        sortOrder
+        skill {
+            id
+            name
+            createdAt
+            updatedAt
+        }
     }
 `;
 
@@ -119,6 +141,47 @@ const deleteExperienceMutation = `
     }
 `;
 
+const skillSelection = `
+    id
+    name
+    createdAt
+    updatedAt
+`;
+
+const createSkillMutation = `
+    mutation CreateSkill($input: CreateSkillInput!) {
+        createSkill(input: $input) {
+            ${skillSelection}
+        }
+    }
+`;
+
+const updateSkillMutation = `
+    mutation UpdateSkill($id: ID!, $input: UpdateSkillInput!) {
+        updateSkill(id: $id, input: $input) {
+            ${skillSelection}
+        }
+    }
+`;
+
+const deleteSkillMutation = `
+    mutation DeleteSkill($id: ID!) {
+        deleteSkill(id: $id)
+    }
+`;
+
+const attachSkillToProfileMutation = `
+    mutation AttachSkillToProfile($skillId: ID!, $sortOrder: Int) {
+        attachSkillToProfile(skillId: $skillId, sortOrder: $sortOrder)
+    }
+`;
+
+const detachSkillFromProfileMutation = `
+    mutation DetachSkillFromProfile($skillId: ID!) {
+        detachSkillFromProfile(skillId: $skillId)
+    }
+`;
+
 describe('Portfolio profile (e2e)', () => {
     let app: INestApplication<App>;
     let prismaService: PrismaService;
@@ -154,10 +217,12 @@ describe('Portfolio profile (e2e)', () => {
 
     beforeEach(async () => {
         await prismaService.profile.deleteMany();
+        await prismaService.skill.deleteMany();
     });
 
     afterAll(async () => {
         await prismaService.profile.deleteMany();
+        await prismaService.skill.deleteMany();
         await app.close();
     });
 
@@ -445,5 +510,186 @@ describe('Portfolio profile (e2e)', () => {
 
         expect(body.data).toBeNull();
         expect(body.errors?.[0]?.message).toBe('Запись об опыте не найдена');
+    });
+
+    it('должно создать навык через GraphQL и сохранить его в PostgreSQL', async () => {
+        const input = { name: 'TypeScript' };
+
+        const response = await request(app.getHttpServer())
+            .post('/graphql')
+            .send({ query: createSkillMutation, variables: { input } })
+            .expect(200);
+        const body = response.body as GraphqlResponse<{ createSkill: SkillResponse }>;
+
+        expect(body.errors).toBeUndefined();
+        expect(body.data?.createSkill).toEqual({
+            id: expect.any(String) as string,
+            name: input.name,
+            createdAt: expect.any(String) as string,
+            updatedAt: expect.any(String) as string,
+        });
+        await expect(
+            prismaService.skill.findUnique({ where: { id: body.data?.createSkill.id } }),
+        ).resolves.toMatchObject(input);
+    });
+
+    it('не должно создавать навык с уже существующим названием', async () => {
+        await prismaService.skill.create({ data: { name: 'TypeScript' } });
+
+        const response = await request(app.getHttpServer())
+            .post('/graphql')
+            .send({
+                query: createSkillMutation,
+                variables: { input: { name: 'TypeScript' } },
+            })
+            .expect(200);
+        const body = response.body as GraphqlResponse<{ createSkill: SkillResponse }>;
+
+        expect(body.data).toBeNull();
+        expect(body.errors?.[0]?.message).toBe('Навык с таким названием уже существует');
+        await expect(prismaService.skill.count()).resolves.toBe(1);
+    });
+
+    it('должно обновить существующий навык', async () => {
+        const skill = await prismaService.skill.create({ data: { name: 'JavaScript' } });
+        const input = { name: 'TypeScript' };
+
+        const response = await request(app.getHttpServer())
+            .post('/graphql')
+            .send({
+                query: updateSkillMutation,
+                variables: { id: skill.id, input },
+            })
+            .expect(200);
+        const body = response.body as GraphqlResponse<{ updateSkill: SkillResponse }>;
+
+        expect(body.errors).toBeUndefined();
+        expect(body.data?.updateSkill).toMatchObject(input);
+        await expect(
+            prismaService.skill.findUnique({ where: { id: skill.id } }),
+        ).resolves.toMatchObject(input);
+    });
+
+    it('не должно обновлять отсутствующий навык', async () => {
+        const response = await request(app.getHttpServer())
+            .post('/graphql')
+            .send({
+                query: updateSkillMutation,
+                variables: {
+                    id: '937a60fb-3d23-49e2-84f6-ed4d40df31c7',
+                    input: { name: 'TypeScript' },
+                },
+            })
+            .expect(200);
+        const body = response.body as GraphqlResponse<{ updateSkill: SkillResponse }>;
+
+        expect(body.data).toBeNull();
+        expect(body.errors?.[0]?.message).toBe('Навык не найден');
+    });
+
+    it('должно привязать навыки и вернуть их внутри профиля в заданном порядке', async () => {
+        await prismaService.profile.create({ data: createProfileInput });
+        const firstSkill = await prismaService.skill.create({ data: { name: 'TypeScript' } });
+        const secondSkill = await prismaService.skill.create({ data: { name: 'NestJS' } });
+
+        for (const [skillId, sortOrder] of [
+            [firstSkill.id, 2],
+            [secondSkill.id, 0],
+        ] as const) {
+            const attachResponse = await request(app.getHttpServer())
+                .post('/graphql')
+                .send({
+                    query: attachSkillToProfileMutation,
+                    variables: { skillId, sortOrder },
+                })
+                .expect(200);
+            const attachBody = attachResponse.body as GraphqlResponse<{
+                attachSkillToProfile: boolean;
+            }>;
+
+            expect(attachBody.errors).toBeUndefined();
+            expect(attachBody.data?.attachSkillToProfile).toBe(true);
+        }
+
+        const response = await request(app.getHttpServer())
+            .post('/graphql')
+            .send({ query: getProfileQuery })
+            .expect(200);
+        const body = response.body as GraphqlResponse<{ getProfile: ProfileResponse }>;
+
+        expect(body.errors).toBeUndefined();
+        expect(
+            body.data?.getProfile.skills.map(({ sortOrder, skill }) => ({
+                sortOrder,
+                name: skill.name,
+            })),
+        ).toEqual([
+            { sortOrder: 0, name: 'NestJS' },
+            { sortOrder: 2, name: 'TypeScript' },
+        ]);
+        await expect(prismaService.profileSkill.count()).resolves.toBe(2);
+    });
+
+    it('не должно повторно привязывать навык к профилю', async () => {
+        await prismaService.profile.create({ data: createProfileInput });
+        const skill = await prismaService.skill.create({ data: { name: 'TypeScript' } });
+        await prismaService.profileSkill.create({
+            data: { profileId: 'main', skillId: skill.id },
+        });
+
+        const response = await request(app.getHttpServer())
+            .post('/graphql')
+            .send({
+                query: attachSkillToProfileMutation,
+                variables: { skillId: skill.id, sortOrder: 1 },
+            })
+            .expect(200);
+        const body = response.body as GraphqlResponse<{ attachSkillToProfile: boolean }>;
+
+        expect(body.data).toBeNull();
+        expect(body.errors?.[0]?.message).toBe('Навык уже добавлен в профиль');
+        await expect(prismaService.profileSkill.count()).resolves.toBe(1);
+    });
+
+    it('должно отвязать навык от профиля', async () => {
+        await prismaService.profile.create({ data: createProfileInput });
+        const skill = await prismaService.skill.create({ data: { name: 'TypeScript' } });
+        await prismaService.profileSkill.create({
+            data: { profileId: 'main', skillId: skill.id },
+        });
+
+        const response = await request(app.getHttpServer())
+            .post('/graphql')
+            .send({
+                query: detachSkillFromProfileMutation,
+                variables: { skillId: skill.id },
+            })
+            .expect(200);
+        const body = response.body as GraphqlResponse<{ detachSkillFromProfile: boolean }>;
+
+        expect(body.errors).toBeUndefined();
+        expect(body.data?.detachSkillFromProfile).toBe(true);
+        await expect(prismaService.profileSkill.count()).resolves.toBe(0);
+    });
+
+    it('должно удалить навык и каскадно удалить его связь с профилем', async () => {
+        await prismaService.profile.create({ data: createProfileInput });
+        const skill = await prismaService.skill.create({ data: { name: 'TypeScript' } });
+        await prismaService.profileSkill.create({
+            data: { profileId: 'main', skillId: skill.id },
+        });
+
+        const response = await request(app.getHttpServer())
+            .post('/graphql')
+            .send({ query: deleteSkillMutation, variables: { id: skill.id } })
+            .expect(200);
+        const body = response.body as GraphqlResponse<{ deleteSkill: boolean }>;
+
+        expect(body.errors).toBeUndefined();
+        expect(body.data?.deleteSkill).toBe(true);
+        await expect(
+            prismaService.skill.findUnique({ where: { id: skill.id } }),
+        ).resolves.toBeNull();
+        await expect(prismaService.profileSkill.count()).resolves.toBe(0);
     });
 });

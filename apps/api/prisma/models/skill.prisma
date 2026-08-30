@@ -1,0 +1,20 @@
+model Skill {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profiles ProfileSkill[]
+}
+
+model ProfileSkill {
+  profileId String
+  skillId   String
+  sortOrder Int    @default(0)
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  skill   Skill   @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([profileId, skillId])
+  @@index([profileId, sortOrder, skillId])
+}

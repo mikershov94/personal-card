@@ -84,6 +84,14 @@ describe('ExperienceRepository', () => {
                 new NotFoundException('Профиль пуст'),
             );
         });
+
+        it('должен скрыть неизвестную ошибку Prisma', async () => {
+            prismaServiceMock.experience.create.mockRejectedValue(new Error('Database error'));
+
+            await expect(repository.createExperience(createExperienceData)).rejects.toEqual(
+                new InternalServerErrorException('Не удалось создать запись об опыте'),
+            );
+        });
     });
 
     describe('updateExperience', () => {
@@ -112,6 +120,16 @@ describe('ExperienceRepository', () => {
                 repository.updateExperience(experience.id, updateExperienceData),
             ).rejects.toEqual(new NotFoundException('Запись об опыте не найдена'));
         });
+
+        it('должен скрыть неизвестную ошибку Prisma', async () => {
+            prismaServiceMock.experience.update.mockRejectedValue(new Error('Database error'));
+
+            await expect(
+                repository.updateExperience(experience.id, updateExperienceData),
+            ).rejects.toEqual(
+                new InternalServerErrorException('Не удалось обновить запись об опыте'),
+            );
+        });
     });
 
     describe('deleteExperience', () => {
@@ -129,6 +147,14 @@ describe('ExperienceRepository', () => {
 
             await expect(repository.deleteExperience(experience.id)).rejects.toEqual(
                 new NotFoundException('Запись об опыте не найдена'),
+            );
+        });
+
+        it('должен скрыть неизвестную ошибку Prisma', async () => {
+            prismaServiceMock.experience.delete.mockRejectedValue(new Error('Database error'));
+
+            await expect(repository.deleteExperience(experience.id)).rejects.toEqual(
+                new InternalServerErrorException('Не удалось удалить запись об опыте'),
             );
         });
     });

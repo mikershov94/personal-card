@@ -1,3 +1,4 @@
+import { InternalServerErrorException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 
 import { PrismaService } from '../../prisma/prisma.service';
@@ -60,11 +61,13 @@ describe('InquiriesRepository', () => {
             });
         });
 
-        it('должен пробросить ошибку Prisma', async () => {
+        it('должен скрыть неизвестную ошибку Prisma', async () => {
             const error = new Error('Database error');
             prismaServiceMock.inquiry.create.mockRejectedValue(error);
 
-            await expect(repository.create(createInquiryData)).rejects.toBe(error);
+            await expect(repository.create(createInquiryData)).rejects.toEqual(
+                new InternalServerErrorException('Не удалось создать заявку'),
+            );
             expect(prismaServiceMock.inquiry.create).toHaveBeenCalledTimes(1);
         });
     });
