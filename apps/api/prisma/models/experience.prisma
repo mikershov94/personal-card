@@ -1,12 +1,17 @@
 model Experience {
-  id          String    @id @default(uuid())
-  company     String
-  position    String
-  description String
-  startDate   DateTime
-  endDate     DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+    id          String    @id @default(uuid())
+    profileId   String
+    company     String
+    position    String
+    location    String?
+    description String?
+    startedAt   DateTime  @db.Date
+    endedAt     DateTime? @db.Date
+    sortOrder   Int       @default(0)
+    createdAt   DateTime  @default(now())
+    updatedAt   DateTime  @updatedAt
 
-  @@index([startDate])
+    profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+    @@index([profileId, sortOrder])
 }

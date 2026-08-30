@@ -11,14 +11,20 @@ export class ExperienceEntity {
     @Field()
     position!: string;
 
-    @Field()
-    description!: string;
+    @Field(() => String, { nullable: true })
+    location!: string | null;
+
+    @Field(() => String, { nullable: true })
+    description!: string | null;
 
     @Field(() => GraphQLISODateTime)
-    startDate!: Date;
+    startedAt!: Date;
 
     @Field(() => GraphQLISODateTime, { nullable: true })
-    endDate!: Date | null;
+    endedAt!: Date | null;
+
+    @Field()
+    sortOrder!: number;
 
     @Field(() => GraphQLISODateTime)
     createdAt!: Date;
