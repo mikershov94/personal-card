@@ -23,9 +23,11 @@ describe('ExperienceRepository', () => {
         id: '77df17af-ca61-4710-a6ca-66b93dfeab7c',
         company: 'Example',
         position: 'Fullstack-разработчик',
+        location: null,
         description: 'Разрабатывал web-приложения на React и NestJS.',
-        startDate: new Date('2024-01-01T00:00:00.000Z'),
-        endDate: null,
+        startedAt: new Date('2024-01-01T00:00:00.000Z'),
+        endedAt: null,
+        sortOrder: 0,
         createdAt: new Date('2026-08-30T00:00:00.000Z'),
         updatedAt: new Date('2026-08-30T00:00:00.000Z'),
     };
@@ -54,9 +56,11 @@ describe('ExperienceRepository', () => {
         const createExperienceData: CreateExperienceData = {
             company: experience.company,
             position: experience.position,
+            location: experience.location,
             description: experience.description,
-            startDate: experience.startDate,
-            endDate: experience.endDate,
+            startedAt: experience.startedAt,
+            endedAt: experience.endedAt,
+            sortOrder: experience.sortOrder,
         };
 
         it('должен создать и вернуть запись об опыте', async () => {
@@ -66,7 +70,7 @@ describe('ExperienceRepository', () => {
                 experience,
             );
             expect(prismaServiceMock.experience.create).toHaveBeenCalledWith({
-                data: createExperienceData,
+                data: { ...createExperienceData, profileId: 'main' },
             });
         });
 
@@ -81,7 +85,7 @@ describe('ExperienceRepository', () => {
     describe('updateExperience', () => {
         const updateExperienceData: UpdateExperienceData = {
             position: 'Senior Fullstack-разработчик',
-            endDate: new Date('2026-08-01T00:00:00.000Z'),
+            endedAt: new Date('2026-08-01T00:00:00.000Z'),
         };
 
         it('должен обновить и вернуть запись об опыте', async () => {
@@ -126,12 +130,13 @@ describe('ExperienceRepository', () => {
     });
 
     describe('getExperiences', () => {
-        it('должен вернуть опыт от нового к старому', async () => {
+        it('должен вернуть опыт основного профиля в детерминированном порядке', async () => {
             prismaServiceMock.experience.findMany.mockResolvedValue([experience]);
 
             await expect(repository.getExperiences()).resolves.toEqual([experience]);
             expect(prismaServiceMock.experience.findMany).toHaveBeenCalledWith({
-                orderBy: { startDate: 'desc' },
+                where: { profileId: 'main' },
+                orderBy: [{ sortOrder: 'asc' }, { startedAt: 'desc' }, { createdAt: 'asc' }],
             });
         });
 
