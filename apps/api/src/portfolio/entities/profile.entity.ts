@@ -1,5 +1,7 @@
 import { Field, GraphQLISODateTime, ID, ObjectType } from '@nestjs/graphql';
 
+import { ExperienceEntity } from './experience.entity';
+
 @ObjectType('Profile')
 export class ProfileEntity {
     @Field(() => ID)
@@ -25,4 +27,7 @@ export class ProfileEntity {
 
     @Field(() => GraphQLISODateTime)
     updatedAt!: Date;
+
+    @Field(() => [ExperienceEntity])
+    experiences!: ExperienceEntity[];
 }

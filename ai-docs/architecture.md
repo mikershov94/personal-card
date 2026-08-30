@@ -25,19 +25,27 @@ NestJS, Prisma, PostgreSQL и GraphQL.
 
 ## Архитектура backend
 
-Backend организован по предметным NestJS-модулям. Текущий шаблон модуля:
+Backend организован по предметным NestJS-модулям. Небольшой модуль может использовать один
+resolver, а модуль с несколькими GraphQL entity разделяет resolvers внутри общей предметной
+границы:
 
 ```text
 feature/
 ├── dto/
 ├── entities/
 ├── repositories/
+├── resolvers/
+│   ├── first.resolver.ts
+│   ├── first.resolver.spec.ts
+│   ├── second.resolver.ts
+│   └── second.resolver.spec.ts
 ├── feature.module.ts
-├── feature.resolver.ts
-├── feature.resolver.spec.ts
 ├── feature.service.ts
 └── feature.service.spec.ts
 ```
+
+Несколько resolvers одного агрегата не требуют отдельных NestJS-модулей. Общий модуль сохраняется,
+пока сценарии используют одну предметную границу и совместно координируются service-слоем.
 
 Основной поток зависимостей:
 
@@ -51,6 +59,8 @@ GraphQL Resolver -> Application Service -> Repository -> PrismaService -> Postgr
 - Resolver не обращается к Prisma или repository напрямую.
 - Service реализует сценарий использования и не зависит от GraphQL-транспорта.
 - Repository инкапсулирует Prisma-запросы и детали хранения данных.
+- Repository дополняет клиентские данные persistence-only полями и значениями по умолчанию,
+  которые не должны задаваться GraphQL-клиентом.
 - `PrismaService` является общей инфраструктурной зависимостью доступа к PostgreSQL.
 - Entity описывает GraphQL output-тип.
 - Input DTO описывает GraphQL input и декларативную валидацию.
@@ -73,6 +83,57 @@ GraphQL Resolver -> Application Service -> Repository -> PrismaService -> Postgr
 - Все GraphQL-операции имеют явный возвращаемый тип.
 - Для успешного удаления GraphQL mutation возвращает `Boolean`, поскольку GraphQL не имеет
   типа `void`.
+
+## Предметная модель Portfolio
+
+Portfolio использует нормализованную модель, в которой профиль является корнем публичного чтения:
+
+```text
+Profile
+├── Experience
+│   └── Project
+├── Project (личный, без Experience)
+├── ProfileLink
+└── ProfileSkill ─── Skill
+                    ├── ExperienceSkill
+                    └── ProjectSkill
+```
+
+Основные связи:
+
+- `Profile 1 -> N Experience`;
+- `Profile 1 -> N Project`;
+- `Experience 1 -> N Project`;
+- связь `Project -> Experience` необязательна, чтобы поддерживать личные проекты;
+- `Profile`, `Experience` и `Project` связываются со справочником `Skill` через отдельные
+  join-модели.
+
+Вложенные коллекции загружаются repository корневой сущности. Repository явно задаёт их
+детерминированную сортировку, включая дополнительные критерии при одинаковом `sortOrder`.
+GraphQL entity отражает загруженные отношения, а unit- и e2e-тесты проверяют порядок элементов.
+
+Достижения, которыми нужно независимо управлять через API, моделируются отдельными сущностями
+вроде `ExperienceHighlight` и `ProjectHighlight`, а не массивами строк.
+
+Изменения Portfolio поставляются вертикальными бизнес-возможностями:
+
+```text
+Prisma -> Repository -> Service -> Resolver -> unit tests -> e2e tests
+```
+
+Не следует делить ветки по техническим слоям, поскольку промежуточная ветка не предоставляет
+законченного публичного сценария.
+
+### Миграции в feature-ветках
+
+Миграцию текущей feature-ветки можно пересоздать до merge, если в ходе реализации исправляется
+контракт той же фичи и пользователь явно подтвердил пересоздание. Существующие Git-коммиты при этом
+можно сохранить: чистой должна быть итоговая Prisma-история ветки, а переписывание Git-истории —
+отдельное решение. Если старая миграция применялась только в локальной disposable-базе, базу можно
+сбросить и воспроизвести миграции заново.
+
+Миграцию нельзя переписывать после merge, release или применения в общей среде. Такие изменения
+оформляются новой корректирующей миграцией с сохранением данных и совместимости истории.
 
 ## Открытые архитектурные решения
 

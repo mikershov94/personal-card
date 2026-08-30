@@ -77,6 +77,11 @@ changed files, and exact verification command, then stop for user review.
   `PrismaService`.
 - Verify observable results, delegated arguments, and error propagation without testing private
   implementation details.
+- Repository code translates recognized persistence failures into concrete NestJS exceptions with
+  domain-appropriate messages and hides unknown infrastructure failures behind
+  `InternalServerErrorException`. Repository tests simulate the persistence condition and assert
+  the exact public exception type and message; do not use a generic `Error` as the expected
+  repository outcome.
 - E2E tests call the real HTTP/GraphQL endpoint and verify PostgreSQL state when persistence is
   part of the scenario.
 - Keep e2e data isolated and cleaned between tests.
@@ -90,6 +95,13 @@ changed files, and exact verification command, then stop for user review.
 - Return an explicit GraphQL result such as `Boolean` for deletion; GraphQL has no `void` type.
 - Keep Prisma access inside repositories and infrastructure services.
 - Commit a Prisma model change together with its generated migration as one logical block.
+- A migration created within the current feature branch may be recreated before merge when its
+  contract is still being corrected and the user explicitly approves that choice. Keep existing
+  Git commits unless the user separately chooses to rewrite them, and reset only disposable local
+  databases if the old migration was applied there. Preserve migrations already merged, released,
+  or applied in shared environments and add a corrective migration instead.
+- For nested collections, establish which repository loads the relation, define deterministic
+  ordering including tie-breakers, and cover that ordering in the relevant unit and e2e tests.
 - Never use development or production data for e2e tests.
 
 ## Verify proportionally

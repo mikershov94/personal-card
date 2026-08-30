@@ -16,6 +16,20 @@ type ProfileResponse = {
     avatarUrl: string;
     createdAt: string;
     updatedAt: string;
+    experiences: ExperienceResponse[];
+};
+
+type ExperienceResponse = {
+    id: string;
+    company: string;
+    position: string;
+    location: string | null;
+    description: string | null;
+    startedAt: string;
+    endedAt: string | null;
+    sortOrder: number;
+    createdAt: string;
+    updatedAt: string;
 };
 
 type GraphqlResponse<TData> = {
@@ -30,6 +44,31 @@ const profileSelection = `
     summary
     location
     avatarUrl
+    createdAt
+    updatedAt
+    experiences {
+        id
+        company
+        position
+        location
+        description
+        startedAt
+        endedAt
+        sortOrder
+        createdAt
+        updatedAt
+    }
+`;
+
+const experienceSelection = `
+    id
+    company
+    position
+    location
+    description
+    startedAt
+    endedAt
+    sortOrder
     createdAt
     updatedAt
 `;
@@ -58,6 +97,28 @@ const getProfileQuery = `
     }
 `;
 
+const createExperienceMutation = `
+    mutation CreateExperience($input: CreateExperienceInput!) {
+        createExperience(input: $input) {
+            ${experienceSelection}
+        }
+    }
+`;
+
+const updateExperienceMutation = `
+    mutation UpdateExperience($id: ID!, $input: UpdateExperienceInput!) {
+        updateExperience(id: $id, input: $input) {
+            ${experienceSelection}
+        }
+    }
+`;
+
+const deleteExperienceMutation = `
+    mutation DeleteExperience($id: ID!) {
+        deleteExperience(id: $id)
+    }
+`;
+
 describe('Portfolio profile (e2e)', () => {
     let app: INestApplication<App>;
     let prismaService: PrismaService;
@@ -68,6 +129,15 @@ describe('Portfolio profile (e2e)', () => {
         summary: 'Разрабатываю web-приложения на TypeScript, React и NestJS.',
         location: 'Иркутск',
         avatarUrl: 'https://example.com/avatar.webp',
+    };
+
+    const createExperienceInput = {
+        company: 'Example',
+        position: 'Fullstack-разработчик',
+        location: 'Иркутск',
+        description: 'Разрабатывал web-приложения на React и NestJS.',
+        startedAt: '2024-01-01T00:00:00.000Z',
+        endedAt: null,
     };
 
     beforeAll(async () => {
@@ -180,5 +250,200 @@ describe('Portfolio profile (e2e)', () => {
         expect(body.data).toBeNull();
         expect(body.errors).toBeDefined();
         await expect(prismaService.profile.count()).resolves.toBe(0);
+    });
+
+    it('должно создать опыт через GraphQL и сохранить служебные поля в PostgreSQL', async () => {
+        await prismaService.profile.create({ data: createProfileInput });
+
+        const response = await request(app.getHttpServer())
+            .post('/graphql')
+            .send({
+                query: createExperienceMutation,
+                variables: { input: createExperienceInput },
+            })
+            .expect(200);
+        const body = response.body as GraphqlResponse<{
+            createExperience: ExperienceResponse;
+        }>;
+
+        expect(body.errors).toBeUndefined();
+        expect(body.data?.createExperience).toEqual(
+            expect.objectContaining({
+                ...createExperienceInput,
+                id: expect.any(String) as string,
+                sortOrder: 0,
+                createdAt: expect.any(String) as string,
+                updatedAt: expect.any(String) as string,
+            }),
+        );
+
+        await expect(
+            prismaService.experience.findUnique({
+                where: { id: body.data?.createExperience.id },
+            }),
+        ).resolves.toMatchObject({
+            profileId: 'main',
+            company: createExperienceInput.company,
+            sortOrder: 0,
+        });
+    });
+
+    it('не должно создавать опыт с датой окончания раньше даты начала', async () => {
+        await prismaService.profile.create({ data: createProfileInput });
+
+        const response = await request(app.getHttpServer())
+            .post('/graphql')
+            .send({
+                query: createExperienceMutation,
+                variables: {
+                    input: {
+                        ...createExperienceInput,
+                        endedAt: '2023-12-31T00:00:00.000Z',
+                    },
+                },
+            })
+            .expect(200);
+        const body = response.body as GraphqlResponse<{
+            createExperience: ExperienceResponse;
+        }>;
+
+        expect(body.data).toBeNull();
+        expect(body.errors?.[0]?.message).toBe(
+            'Дата окончания опыта не может быть раньше даты начала',
+        );
+        await expect(prismaService.experience.count()).resolves.toBe(0);
+    });
+
+    it('должно вернуть опыт внутри профиля в детерминированном порядке', async () => {
+        await prismaService.profile.create({ data: createProfileInput });
+        await prismaService.experience.createMany({
+            data: [
+                {
+                    profileId: 'main',
+                    company: 'Старый приоритетный опыт',
+                    position: 'Разработчик',
+                    startedAt: new Date('2020-01-01T00:00:00.000Z'),
+                    sortOrder: 0,
+                },
+                {
+                    profileId: 'main',
+                    company: 'Новый приоритетный опыт',
+                    position: 'Разработчик',
+                    startedAt: new Date('2024-01-01T00:00:00.000Z'),
+                    sortOrder: 0,
+                },
+                {
+                    profileId: 'main',
+                    company: 'Опыт второго порядка',
+                    position: 'Разработчик',
+                    startedAt: new Date('2025-01-01T00:00:00.000Z'),
+                    sortOrder: 1,
+                },
+            ],
+        });
+
+        const response = await request(app.getHttpServer())
+            .post('/graphql')
+            .send({ query: getProfileQuery })
+            .expect(200);
+        const body = response.body as GraphqlResponse<{ getProfile: ProfileResponse }>;
+
+        expect(body.errors).toBeUndefined();
+        expect(body.data?.getProfile.experiences.map(({ company }) => company)).toEqual([
+            'Новый приоритетный опыт',
+            'Старый приоритетный опыт',
+            'Опыт второго порядка',
+        ]);
+    });
+
+    it('должно обновить существующую запись об опыте', async () => {
+        await prismaService.profile.create({ data: createProfileInput });
+        const experience = await prismaService.experience.create({
+            data: {
+                profileId: 'main',
+                company: createExperienceInput.company,
+                position: createExperienceInput.position,
+                startedAt: new Date(createExperienceInput.startedAt),
+            },
+        });
+        const input = { position: 'Senior Fullstack-разработчик', sortOrder: 2 };
+
+        const response = await request(app.getHttpServer())
+            .post('/graphql')
+            .send({
+                query: updateExperienceMutation,
+                variables: { id: experience.id, input },
+            })
+            .expect(200);
+        const body = response.body as GraphqlResponse<{
+            updateExperience: ExperienceResponse;
+        }>;
+
+        expect(body.errors).toBeUndefined();
+        expect(body.data?.updateExperience).toMatchObject(input);
+        await expect(
+            prismaService.experience.findUnique({ where: { id: experience.id } }),
+        ).resolves.toMatchObject(input);
+    });
+
+    it('не должно обновлять отсутствующую запись об опыте', async () => {
+        await prismaService.profile.create({ data: createProfileInput });
+
+        const response = await request(app.getHttpServer())
+            .post('/graphql')
+            .send({
+                query: updateExperienceMutation,
+                variables: {
+                    id: '77df17af-ca61-4710-a6ca-66b93dfeab7c',
+                    input: { position: 'Senior Fullstack-разработчик' },
+                },
+            })
+            .expect(200);
+        const body = response.body as GraphqlResponse<{
+            updateExperience: ExperienceResponse;
+        }>;
+
+        expect(body.data).toBeNull();
+        expect(body.errors?.[0]?.message).toBe('Запись об опыте не найдена');
+    });
+
+    it('должно удалить существующую запись об опыте', async () => {
+        await prismaService.profile.create({ data: createProfileInput });
+        const experience = await prismaService.experience.create({
+            data: {
+                profileId: 'main',
+                company: createExperienceInput.company,
+                position: createExperienceInput.position,
+                startedAt: new Date(createExperienceInput.startedAt),
+            },
+        });
+
+        const response = await request(app.getHttpServer())
+            .post('/graphql')
+            .send({ query: deleteExperienceMutation, variables: { id: experience.id } })
+            .expect(200);
+        const body = response.body as GraphqlResponse<{ deleteExperience: boolean }>;
+
+        expect(body.errors).toBeUndefined();
+        expect(body.data?.deleteExperience).toBe(true);
+        await expect(
+            prismaService.experience.findUnique({ where: { id: experience.id } }),
+        ).resolves.toBeNull();
+    });
+
+    it('не должно удалять отсутствующую запись об опыте', async () => {
+        await prismaService.profile.create({ data: createProfileInput });
+
+        const response = await request(app.getHttpServer())
+            .post('/graphql')
+            .send({
+                query: deleteExperienceMutation,
+                variables: { id: '77df17af-ca61-4710-a6ca-66b93dfeab7c' },
+            })
+            .expect(200);
+        const body = response.body as GraphqlResponse<{ deleteExperience: boolean }>;
+
+        expect(body.data).toBeNull();
+        expect(body.errors?.[0]?.message).toBe('Запись об опыте не найдена');
     });
 });

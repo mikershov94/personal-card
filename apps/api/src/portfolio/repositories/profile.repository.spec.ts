@@ -1,10 +1,20 @@
+import { ConflictException, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 
 import { PrismaService } from '../../prisma/prisma.service';
-import { CreateProfileData, PortfolioRepository, UpdateProfileData } from './portfolio.repository';
+import { CreateProfileData, ProfileRepository, UpdateProfileData } from './profile.repository';
 
-describe('PortfolioRepository', () => {
-    let repository: PortfolioRepository;
+describe('ProfileRepository', () => {
+    let repository: ProfileRepository;
+
+    const prismaError = (code: string): Error & { code: string } =>
+        Object.assign(new Error(`Prisma error ${code}`), { code });
+
+    const experiencesInclude = {
+        experiences: {
+            orderBy: [{ sortOrder: 'asc' }, { startedAt: 'desc' }, { createdAt: 'asc' }],
+        },
+    };
 
     const prismaServiceMock = {
         profile: {
@@ -13,6 +23,19 @@ describe('PortfolioRepository', () => {
             delete: jest.fn(),
             findUnique: jest.fn(),
         },
+    };
+
+    const experience = {
+        id: '77df17af-ca61-4710-a6ca-66b93dfeab7c',
+        company: 'Example',
+        position: 'Fullstack-разработчик',
+        location: null,
+        description: 'Разрабатывал web-приложения на React и NestJS.',
+        startedAt: new Date('2024-01-01T00:00:00.000Z'),
+        endedAt: null,
+        sortOrder: 0,
+        createdAt: new Date('2026-08-30T00:00:00.000Z'),
+        updatedAt: new Date('2026-08-30T00:00:00.000Z'),
     };
 
     const profile = {
@@ -24,6 +47,7 @@ describe('PortfolioRepository', () => {
         avatarUrl: '/images/profile/avatar.webp',
         createdAt: new Date('2026-08-30T00:00:00.000Z'),
         updatedAt: new Date('2026-08-30T00:00:00.000Z'),
+        experiences: [experience],
     };
 
     beforeEach(async () => {
@@ -31,7 +55,7 @@ describe('PortfolioRepository', () => {
 
         const module: TestingModule = await Test.createTestingModule({
             providers: [
-                PortfolioRepository,
+                ProfileRepository,
                 {
                     provide: PrismaService,
                     useValue: prismaServiceMock,
@@ -39,7 +63,7 @@ describe('PortfolioRepository', () => {
             ],
         }).compile();
 
-        repository = module.get<PortfolioRepository>(PortfolioRepository);
+        repository = module.get<ProfileRepository>(ProfileRepository);
     });
 
     it('должен быть определён', () => {
@@ -62,19 +86,21 @@ describe('PortfolioRepository', () => {
             expect(prismaServiceMock.profile.create).toHaveBeenCalledTimes(1);
             expect(prismaServiceMock.profile.create).toHaveBeenCalledWith({
                 data: createProfileData,
+                include: experiencesInclude,
             });
         });
 
-        it('должен пробросить ошибку Prisma', async () => {
-            const error = new Error('Не удалось создать профиль');
-            prismaServiceMock.profile.create.mockRejectedValue(error);
+        it('должен выбросить ConflictException, если профиль уже существует', async () => {
+            prismaServiceMock.profile.create.mockRejectedValue(prismaError('P2002'));
 
-            await expect(repository.createProfile(createProfileData)).rejects.toBe(error);
+            await expect(repository.createProfile(createProfileData)).rejects.toEqual(
+                new ConflictException('Профиль уже существует'),
+            );
             expect(prismaServiceMock.profile.create).toHaveBeenCalledTimes(1);
         });
     });
 
-    describe('updatedProfile', () => {
+    describe('updateProfile', () => {
         const updateProfileData: UpdateProfileData = {
             headline: 'Frontend / Fullstack разработчик',
             summary: 'Разрабатываю frontend и backend web-приложений.',
@@ -88,21 +114,23 @@ describe('PortfolioRepository', () => {
             };
             prismaServiceMock.profile.update.mockResolvedValue(updatedProfile);
 
-            await expect(repository.updatedProfile(updateProfileData)).resolves.toEqual(
+            await expect(repository.updateProfile(updateProfileData)).resolves.toEqual(
                 updatedProfile,
             );
             expect(prismaServiceMock.profile.update).toHaveBeenCalledTimes(1);
             expect(prismaServiceMock.profile.update).toHaveBeenCalledWith({
                 where: { id: 'main' },
                 data: updateProfileData,
+                include: experiencesInclude,
             });
         });
 
-        it('должен пробросить ошибку Prisma', async () => {
-            const error = new Error('Не удалось обновить профиль');
-            prismaServiceMock.profile.update.mockRejectedValue(error);
+        it('должен выбросить NotFoundException, если профиль отсутствует', async () => {
+            prismaServiceMock.profile.update.mockRejectedValue(prismaError('P2025'));
 
-            await expect(repository.updatedProfile(updateProfileData)).rejects.toBe(error);
+            await expect(repository.updateProfile(updateProfileData)).rejects.toEqual(
+                new NotFoundException('Профиль пуст'),
+            );
             expect(prismaServiceMock.profile.update).toHaveBeenCalledTimes(1);
         });
     });
@@ -117,6 +145,7 @@ describe('PortfolioRepository', () => {
             avatarUrl: profile.avatarUrl,
             createdAt: profile.createdAt,
             updatedAt: profile.updatedAt,
+            experiences: profile.experiences,
         };
 
         it('должен удалить основной профиль', async () => {
@@ -126,14 +155,16 @@ describe('PortfolioRepository', () => {
             expect(prismaServiceMock.profile.delete).toHaveBeenCalledTimes(1);
             expect(prismaServiceMock.profile.delete).toHaveBeenCalledWith({
                 where: { id: 'main' },
+                include: experiencesInclude,
             });
         });
 
-        it('должен пробросить ошибку Prisma', async () => {
-            const error = new Error('Не удалось удалить профиль');
-            prismaServiceMock.profile.delete.mockRejectedValue(error);
+        it('должен выбросить NotFoundException, если профиль отсутствует', async () => {
+            prismaServiceMock.profile.delete.mockRejectedValue(prismaError('P2025'));
 
-            await expect(repository.deleteProfile()).rejects.toBe(error);
+            await expect(repository.deleteProfile()).rejects.toEqual(
+                new NotFoundException('Профиль пуст'),
+            );
             expect(prismaServiceMock.profile.delete).toHaveBeenCalledTimes(1);
         });
     });
@@ -146,14 +177,29 @@ describe('PortfolioRepository', () => {
             expect(prismaServiceMock.profile.findUnique).toHaveBeenCalledTimes(1);
             expect(prismaServiceMock.profile.findUnique).toHaveBeenCalledWith({
                 where: { id: 'main' },
+                include: experiencesInclude,
             });
         });
 
-        it('должен пробросить ошибку Prisma', async () => {
-            const error = new Error('Не удалось получить профиль');
-            prismaServiceMock.profile.findUnique.mockRejectedValue(error);
+        it('должен выбросить NotFoundException, если основной профиль отсутствует', async () => {
+            prismaServiceMock.profile.findUnique.mockResolvedValue(null);
 
-            await expect(repository.getProfile()).rejects.toBe(error);
+            await expect(repository.getProfile()).rejects.toEqual(
+                new NotFoundException('Профиль пуст'),
+            );
+            expect(prismaServiceMock.profile.findUnique).toHaveBeenCalledTimes(1);
+            expect(prismaServiceMock.profile.findUnique).toHaveBeenCalledWith({
+                where: { id: 'main' },
+                include: experiencesInclude,
+            });
+        });
+
+        it('должен скрыть неизвестную ошибку Prisma за InternalServerErrorException', async () => {
+            prismaServiceMock.profile.findUnique.mockRejectedValue(new Error('Database error'));
+
+            await expect(repository.getProfile()).rejects.toEqual(
+                new InternalServerErrorException('Не удалось получить профиль'),
+            );
             expect(prismaServiceMock.profile.findUnique).toHaveBeenCalledTimes(1);
         });
     });

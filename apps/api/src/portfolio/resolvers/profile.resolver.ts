@@ -1,12 +1,12 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 
-import { CreateProfileDto } from './dto/create-profile.input.dto';
-import { UpdateProfileDto } from './dto/update-profile.input.dto';
-import { ProfileEntity } from './entities/profile.entity';
-import { PortfolioService } from './portfolio.service';
+import { CreateProfileDto } from '../dto/create-profile.input.dto';
+import { UpdateProfileDto } from '../dto/update-profile.input.dto';
+import { ProfileEntity } from '../entities/profile.entity';
+import { PortfolioService } from '../portfolio.service';
 
 @Resolver(() => ProfileEntity)
-export class PortfolioResolver {
+export class ProfileResolver {
     constructor(private readonly portfolioService: PortfolioService) {}
 
     @Mutation(() => ProfileEntity)
