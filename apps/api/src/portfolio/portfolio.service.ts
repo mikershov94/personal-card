@@ -2,18 +2,23 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 
 import { CreateExperienceDto } from './dto/create-experience.input.dto';
 import { CreateProfileDto } from './dto/create-profile.input.dto';
+import { CreateSkillDto } from './dto/create-skill.input.dto';
 import { UpdateExperienceDto } from './dto/update-experience.input.dto';
 import { UpdateProfileDto } from './dto/update-profile.input.dto';
+import { UpdateSkillDto } from './dto/update-skill.input.dto';
 import { ExperienceEntity } from './entities/experience.entity';
 import { ProfileEntity } from './entities/profile.entity';
+import { SkillEntity } from './entities/skill.entity';
 import { ExperienceRepository } from './repositories/experience.repository';
 import { ProfileRepository } from './repositories/profile.repository';
+import { SkillRepository } from './repositories/skill.repository';
 
 @Injectable()
 export class PortfolioService {
     constructor(
         private readonly profileRepo: ProfileRepository,
         private readonly experienceRepo: ExperienceRepository,
+        private readonly skillRepo: SkillRepository,
     ) {}
 
     public async createProfile(dto: CreateProfileDto): Promise<ProfileEntity> {
@@ -51,6 +56,28 @@ export class PortfolioService {
 
     public async deleteExperience(id: string): Promise<void> {
         await this.experienceRepo.deleteExperience(id);
+    }
+
+    public async createSkill(dto: CreateSkillDto): Promise<SkillEntity> {
+        return this.skillRepo.createSkill(dto);
+    }
+
+    public async updateSkill(id: string, dto: UpdateSkillDto): Promise<SkillEntity> {
+        return this.skillRepo.updateSkill(id, dto);
+    }
+
+    public async deleteSkill(id: string): Promise<void> {
+        await this.skillRepo.deleteSkill(id);
+    }
+
+    public async attachSkillToProfile(skillId: string, sortOrder = 0): Promise<void> {
+        await this.profileRepo.getProfile();
+        await this.skillRepo.getSkill(skillId);
+        await this.skillRepo.attachSkillToProfile(skillId, sortOrder);
+    }
+
+    public async detachSkillFromProfile(skillId: string): Promise<void> {
+        await this.skillRepo.detachSkillFromProfile(skillId);
     }
 
     private validateExperiencePeriod(startedAt: Date, endedAt?: Date | null): void {
