@@ -23,7 +23,7 @@ export class ProfileRepository {
         return this.prismaService.profile.create({ data });
     }
 
-    public async updatedProfile(data: UpdateProfileData): Promise<ProfileEntity> {
+    public async updateProfile(data: UpdateProfileData): Promise<ProfileEntity> {
         return this.prismaService.profile.update({ where: { id: MAIN_PROFILE_ID }, data });
     }
 

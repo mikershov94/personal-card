@@ -74,7 +74,7 @@ describe('ProfileRepository', () => {
         });
     });
 
-    describe('updatedProfile', () => {
+    describe('updateProfile', () => {
         const updateProfileData: UpdateProfileData = {
             headline: 'Frontend / Fullstack разработчик',
             summary: 'Разрабатываю frontend и backend web-приложений.',
@@ -88,7 +88,7 @@ describe('ProfileRepository', () => {
             };
             prismaServiceMock.profile.update.mockResolvedValue(updatedProfile);
 
-            await expect(repository.updatedProfile(updateProfileData)).resolves.toEqual(
+            await expect(repository.updateProfile(updateProfileData)).resolves.toEqual(
                 updatedProfile,
             );
             expect(prismaServiceMock.profile.update).toHaveBeenCalledTimes(1);
@@ -102,7 +102,7 @@ describe('ProfileRepository', () => {
             const error = new Error('Не удалось обновить профиль');
             prismaServiceMock.profile.update.mockRejectedValue(error);
 
-            await expect(repository.updatedProfile(updateProfileData)).rejects.toBe(error);
+            await expect(repository.updateProfile(updateProfileData)).rejects.toBe(error);
             expect(prismaServiceMock.profile.update).toHaveBeenCalledTimes(1);
         });
     });

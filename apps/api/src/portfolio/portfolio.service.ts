@@ -14,7 +14,7 @@ export class PortfolioService {
     }
 
     public async updateProfile(dto: UpdateProfileDto): Promise<ProfileEntity> {
-        return this.profileRepo.updatedProfile(dto);
+        return this.profileRepo.updateProfile(dto);
     }
 
     public async deleteProfile(): Promise<void> {

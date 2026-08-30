@@ -12,7 +12,7 @@ describe('PortfolioService', () => {
 
     const profileRepositoryMock = {
         createProfile: jest.fn(),
-        updatedProfile: jest.fn(),
+        updateProfile: jest.fn(),
         deleteProfile: jest.fn(),
         getProfile: jest.fn(),
     };
@@ -87,20 +87,20 @@ describe('PortfolioService', () => {
                 ...updateProfileDto,
                 updatedAt: new Date('2026-08-30T01:00:00.000Z'),
             };
-            profileRepositoryMock.updatedProfile.mockResolvedValue(updatedProfile);
+            profileRepositoryMock.updateProfile.mockResolvedValue(updatedProfile);
 
             await expect(service.updateProfile(updateProfileDto)).resolves.toEqual(updatedProfile);
-            expect(profileRepositoryMock.updatedProfile).toHaveBeenCalledTimes(1);
-            expect(profileRepositoryMock.updatedProfile).toHaveBeenCalledWith(updateProfileDto);
+            expect(profileRepositoryMock.updateProfile).toHaveBeenCalledTimes(1);
+            expect(profileRepositoryMock.updateProfile).toHaveBeenCalledWith(updateProfileDto);
         });
 
         it('должен пробросить ошибку репозитория', async () => {
             const error = new Error('Не удалось обновить профиль');
-            profileRepositoryMock.updatedProfile.mockRejectedValue(error);
+            profileRepositoryMock.updateProfile.mockRejectedValue(error);
 
             await expect(service.updateProfile(updateProfileDto)).rejects.toBe(error);
-            expect(profileRepositoryMock.updatedProfile).toHaveBeenCalledTimes(1);
-            expect(profileRepositoryMock.updatedProfile).toHaveBeenCalledWith(updateProfileDto);
+            expect(profileRepositoryMock.updateProfile).toHaveBeenCalledTimes(1);
+            expect(profileRepositoryMock.updateProfile).toHaveBeenCalledWith(updateProfileDto);
         });
     });
 
