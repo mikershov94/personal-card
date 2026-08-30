@@ -33,11 +33,4 @@ export class ExperienceRepository {
     public deleteExperience(id: string): Promise<ExperienceEntity> {
         return this.prismaService.experience.delete({ where: { id } });
     }
-
-    public getExperiences(): Promise<ExperienceEntity[]> {
-        return this.prismaService.experience.findMany({
-            where: { profileId: MAIN_PROFILE_ID },
-            orderBy: [{ sortOrder: 'asc' }, { startedAt: 'desc' }, { createdAt: 'asc' }],
-        });
-    }
 }

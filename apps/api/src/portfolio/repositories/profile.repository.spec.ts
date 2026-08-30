@@ -1,3 +1,4 @@
+import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 
 import { PrismaService } from '../../prisma/prisma.service';
@@ -6,6 +7,12 @@ import { CreateProfileData, ProfileRepository, UpdateProfileData } from './profi
 describe('ProfileRepository', () => {
     let repository: ProfileRepository;
 
+    const experiencesInclude = {
+        experiences: {
+            orderBy: [{ sortOrder: 'asc' }, { startedAt: 'desc' }, { createdAt: 'asc' }],
+        },
+    };
+
     const prismaServiceMock = {
         profile: {
             create: jest.fn(),
@@ -13,6 +20,19 @@ describe('ProfileRepository', () => {
             delete: jest.fn(),
             findUnique: jest.fn(),
         },
+    };
+
+    const experience = {
+        id: '77df17af-ca61-4710-a6ca-66b93dfeab7c',
+        company: 'Example',
+        position: 'Fullstack-разработчик',
+        location: null,
+        description: 'Разрабатывал web-приложения на React и NestJS.',
+        startedAt: new Date('2024-01-01T00:00:00.000Z'),
+        endedAt: null,
+        sortOrder: 0,
+        createdAt: new Date('2026-08-30T00:00:00.000Z'),
+        updatedAt: new Date('2026-08-30T00:00:00.000Z'),
     };
 
     const profile = {
@@ -24,6 +44,7 @@ describe('ProfileRepository', () => {
         avatarUrl: '/images/profile/avatar.webp',
         createdAt: new Date('2026-08-30T00:00:00.000Z'),
         updatedAt: new Date('2026-08-30T00:00:00.000Z'),
+        experiences: [experience],
     };
 
     beforeEach(async () => {
@@ -62,6 +83,7 @@ describe('ProfileRepository', () => {
             expect(prismaServiceMock.profile.create).toHaveBeenCalledTimes(1);
             expect(prismaServiceMock.profile.create).toHaveBeenCalledWith({
                 data: createProfileData,
+                include: experiencesInclude,
             });
         });
 
@@ -95,6 +117,7 @@ describe('ProfileRepository', () => {
             expect(prismaServiceMock.profile.update).toHaveBeenCalledWith({
                 where: { id: 'main' },
                 data: updateProfileData,
+                include: experiencesInclude,
             });
         });
 
@@ -117,6 +140,7 @@ describe('ProfileRepository', () => {
             avatarUrl: profile.avatarUrl,
             createdAt: profile.createdAt,
             updatedAt: profile.updatedAt,
+            experiences: profile.experiences,
         };
 
         it('должен удалить основной профиль', async () => {
@@ -126,6 +150,7 @@ describe('ProfileRepository', () => {
             expect(prismaServiceMock.profile.delete).toHaveBeenCalledTimes(1);
             expect(prismaServiceMock.profile.delete).toHaveBeenCalledWith({
                 where: { id: 'main' },
+                include: experiencesInclude,
             });
         });
 
@@ -146,6 +171,20 @@ describe('ProfileRepository', () => {
             expect(prismaServiceMock.profile.findUnique).toHaveBeenCalledTimes(1);
             expect(prismaServiceMock.profile.findUnique).toHaveBeenCalledWith({
                 where: { id: 'main' },
+                include: experiencesInclude,
+            });
+        });
+
+        it('должен выбросить NotFoundException, если основной профиль отсутствует', async () => {
+            prismaServiceMock.profile.findUnique.mockResolvedValue(null);
+
+            await expect(repository.getProfile()).rejects.toEqual(
+                new NotFoundException('Профиль пуст'),
+            );
+            expect(prismaServiceMock.profile.findUnique).toHaveBeenCalledTimes(1);
+            expect(prismaServiceMock.profile.findUnique).toHaveBeenCalledWith({
+                where: { id: 'main' },
+                include: experiencesInclude,
             });
         });
 

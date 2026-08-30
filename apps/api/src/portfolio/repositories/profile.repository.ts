@@ -20,20 +20,47 @@ export class ProfileRepository {
     constructor(private readonly prismaService: PrismaService) {}
 
     public async createProfile(data: CreateProfileData): Promise<ProfileEntity> {
-        return this.prismaService.profile.create({ data });
+        return this.prismaService.profile.create({
+            data,
+            include: {
+                experiences: {
+                    orderBy: [{ sortOrder: 'asc' }, { startedAt: 'desc' }, { createdAt: 'asc' }],
+                },
+            },
+        });
     }
 
     public async updateProfile(data: UpdateProfileData): Promise<ProfileEntity> {
-        return this.prismaService.profile.update({ where: { id: MAIN_PROFILE_ID }, data });
+        return this.prismaService.profile.update({
+            where: { id: MAIN_PROFILE_ID },
+            data,
+            include: {
+                experiences: {
+                    orderBy: [{ sortOrder: 'asc' }, { startedAt: 'desc' }, { createdAt: 'asc' }],
+                },
+            },
+        });
     }
 
     public async deleteProfile(): Promise<ProfileEntity> {
-        return this.prismaService.profile.delete({ where: { id: MAIN_PROFILE_ID } });
+        return this.prismaService.profile.delete({
+            where: { id: MAIN_PROFILE_ID },
+            include: {
+                experiences: {
+                    orderBy: [{ sortOrder: 'asc' }, { startedAt: 'desc' }, { createdAt: 'asc' }],
+                },
+            },
+        });
     }
 
     public async getProfile(): Promise<ProfileEntity> {
         const profile = await this.prismaService.profile.findUnique({
             where: { id: MAIN_PROFILE_ID },
+            include: {
+                experiences: {
+                    orderBy: [{ sortOrder: 'asc' }, { startedAt: 'desc' }, { createdAt: 'asc' }],
+                },
+            },
         });
 
         if (!profile) {

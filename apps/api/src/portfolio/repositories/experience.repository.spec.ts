@@ -15,7 +15,6 @@ describe('ExperienceRepository', () => {
             create: jest.fn(),
             update: jest.fn(),
             delete: jest.fn(),
-            findMany: jest.fn(),
         },
     };
 
@@ -126,25 +125,6 @@ describe('ExperienceRepository', () => {
             prismaServiceMock.experience.delete.mockRejectedValue(error);
 
             await expect(repository.deleteExperience(experience.id)).rejects.toBe(error);
-        });
-    });
-
-    describe('getExperiences', () => {
-        it('должен вернуть опыт основного профиля в детерминированном порядке', async () => {
-            prismaServiceMock.experience.findMany.mockResolvedValue([experience]);
-
-            await expect(repository.getExperiences()).resolves.toEqual([experience]);
-            expect(prismaServiceMock.experience.findMany).toHaveBeenCalledWith({
-                where: { profileId: 'main' },
-                orderBy: [{ sortOrder: 'asc' }, { startedAt: 'desc' }, { createdAt: 'asc' }],
-            });
-        });
-
-        it('должен пробросить ошибку Prisma', async () => {
-            const error = new Error('Не удалось получить опыт');
-            prismaServiceMock.experience.findMany.mockRejectedValue(error);
-
-            await expect(repository.getExperiences()).rejects.toBe(error);
         });
     });
 });
