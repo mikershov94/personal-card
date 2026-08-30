@@ -25,19 +25,27 @@ NestJS, Prisma, PostgreSQL и GraphQL.
 
 ## Архитектура backend
 
-Backend организован по предметным NestJS-модулям. Текущий шаблон модуля:
+Backend организован по предметным NestJS-модулям. Небольшой модуль может использовать один
+resolver, а модуль с несколькими GraphQL entity разделяет resolvers внутри общей предметной
+границы:
 
 ```text
 feature/
 ├── dto/
 ├── entities/
 ├── repositories/
+├── resolvers/
+│   ├── first.resolver.ts
+│   ├── first.resolver.spec.ts
+│   ├── second.resolver.ts
+│   └── second.resolver.spec.ts
 ├── feature.module.ts
-├── feature.resolver.ts
-├── feature.resolver.spec.ts
 ├── feature.service.ts
 └── feature.service.spec.ts
 ```
+
+Несколько resolvers одного агрегата не требуют отдельных NestJS-модулей. Общий модуль сохраняется,
+пока сценарии используют одну предметную границу и совместно координируются service-слоем.
 
 Основной поток зависимостей:
 
@@ -51,6 +59,8 @@ GraphQL Resolver -> Application Service -> Repository -> PrismaService -> Postgr
 - Resolver не обращается к Prisma или repository напрямую.
 - Service реализует сценарий использования и не зависит от GraphQL-транспорта.
 - Repository инкапсулирует Prisma-запросы и детали хранения данных.
+- Repository дополняет клиентские данные persistence-only полями и значениями по умолчанию,
+  которые не должны задаваться GraphQL-клиентом.
 - `PrismaService` является общей инфраструктурной зависимостью доступа к PostgreSQL.
 - Entity описывает GraphQL output-тип.
 - Input DTO описывает GraphQL input и декларативную валидацию.
