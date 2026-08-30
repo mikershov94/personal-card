@@ -1,11 +1,24 @@
 import { NotFoundException } from '@nestjs/common';
+import { GUARDS_METADATA } from '@nestjs/common/constants';
+import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CreateExperienceDto } from '../dto/create-experience.input.dto';
 import { UpdateExperienceDto } from '../dto/update-experience.input.dto';
 import { ExperienceEntity } from '../entities/experience.entity';
 import { ExperienceService } from '../services/experience.service';
 import { ExperienceResolver } from './experience.resolver';
+
+function getResolverMethod(methodName: string): object {
+    const descriptor = Object.getOwnPropertyDescriptor(ExperienceResolver.prototype, methodName);
+
+    if (typeof descriptor?.value !== 'function') {
+        throw new Error(`Метод resolver не найден: ${methodName}`);
+    }
+
+    return descriptor.value as object;
+}
 
 describe('ExperienceResolver', () => {
     let resolver: ExperienceResolver;
@@ -37,6 +50,7 @@ describe('ExperienceResolver', () => {
             providers: [
                 ExperienceResolver,
                 { provide: ExperienceService, useValue: experienceServiceMock },
+                { provide: JwtService, useValue: { verifyAsync: jest.fn() } },
             ],
         }).compile();
 
@@ -45,6 +59,18 @@ describe('ExperienceResolver', () => {
 
     it('должен быть определён', () => {
         expect(resolver).toBeDefined();
+    });
+
+    it('должен защищать все мутации JWT guard', () => {
+        expect(
+            Reflect.getMetadata(GUARDS_METADATA, getResolverMethod('createExperience')),
+        ).toContain(JwtAuthGuard);
+        expect(
+            Reflect.getMetadata(GUARDS_METADATA, getResolverMethod('updateExperience')),
+        ).toContain(JwtAuthGuard);
+        expect(
+            Reflect.getMetadata(GUARDS_METADATA, getResolverMethod('deleteExperience')),
+        ).toContain(JwtAuthGuard);
     });
 
     describe('createExperience', () => {

@@ -1,11 +1,24 @@
 import { NotFoundException } from '@nestjs/common';
+import { GUARDS_METADATA } from '@nestjs/common/constants';
+import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CreateProjectDto } from '../dto/create-project.input.dto';
 import { UpdateProjectDto } from '../dto/update-project.input.dto';
 import { ProjectEntity } from '../entities/project.entity';
 import { ProjectService } from '../services/project.service';
 import { ProjectResolver } from './project.resolver';
+
+function getResolverMethod(methodName: string): object {
+    const descriptor = Object.getOwnPropertyDescriptor(ProjectResolver.prototype, methodName);
+
+    if (typeof descriptor?.value !== 'function') {
+        throw new Error(`Метод resolver не найден: ${methodName}`);
+    }
+
+    return descriptor.value as object;
+}
 
 describe('ProjectResolver', () => {
     let resolver: ProjectResolver;
@@ -33,7 +46,11 @@ describe('ProjectResolver', () => {
         jest.resetAllMocks();
 
         const module: TestingModule = await Test.createTestingModule({
-            providers: [ProjectResolver, { provide: ProjectService, useValue: projectServiceMock }],
+            providers: [
+                ProjectResolver,
+                { provide: ProjectService, useValue: projectServiceMock },
+                { provide: JwtService, useValue: { verifyAsync: jest.fn() } },
+            ],
         }).compile();
 
         resolver = module.get<ProjectResolver>(ProjectResolver);
@@ -41,6 +58,18 @@ describe('ProjectResolver', () => {
 
     it('должен быть определён', () => {
         expect(resolver).toBeDefined();
+    });
+
+    it('должен защищать все мутации JWT guard', () => {
+        expect(Reflect.getMetadata(GUARDS_METADATA, getResolverMethod('createProject'))).toContain(
+            JwtAuthGuard,
+        );
+        expect(Reflect.getMetadata(GUARDS_METADATA, getResolverMethod('updateProject'))).toContain(
+            JwtAuthGuard,
+        );
+        expect(Reflect.getMetadata(GUARDS_METADATA, getResolverMethod('deleteProject'))).toContain(
+            JwtAuthGuard,
+        );
     });
 
     describe('createProject', () => {

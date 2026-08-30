@@ -1,10 +1,23 @@
+import { GUARDS_METADATA } from '@nestjs/common/constants';
+import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CreateProfileDto } from '../dto/create-profile.input.dto';
 import { UpdateProfileDto } from '../dto/update-profile.input.dto';
 import { ProfileEntity } from '../entities/profile.entity';
 import { ProfileService } from '../services/profile.service';
 import { ProfileResolver } from './profile.resolver';
+
+function getResolverMethod(methodName: string): object {
+    const descriptor = Object.getOwnPropertyDescriptor(ProfileResolver.prototype, methodName);
+
+    if (typeof descriptor?.value !== 'function') {
+        throw new Error(`Метод resolver не найден: ${methodName}`);
+    }
+
+    return descriptor.value as object;
+}
 
 describe('ProfileResolver', () => {
     let resolver: ProfileResolver;
@@ -34,7 +47,11 @@ describe('ProfileResolver', () => {
         jest.resetAllMocks();
 
         const module: TestingModule = await Test.createTestingModule({
-            providers: [ProfileResolver, { provide: ProfileService, useValue: ProfileServiceMock }],
+            providers: [
+                ProfileResolver,
+                { provide: ProfileService, useValue: ProfileServiceMock },
+                { provide: JwtService, useValue: { verifyAsync: jest.fn() } },
+            ],
         }).compile();
 
         resolver = module.get<ProfileResolver>(ProfileResolver);
@@ -42,6 +59,21 @@ describe('ProfileResolver', () => {
 
     it('должен быть определён', () => {
         expect(resolver).toBeDefined();
+    });
+
+    it('должен защищать мутации и оставлять query публичной', () => {
+        expect(Reflect.getMetadata(GUARDS_METADATA, getResolverMethod('createProfile'))).toContain(
+            JwtAuthGuard,
+        );
+        expect(Reflect.getMetadata(GUARDS_METADATA, getResolverMethod('updateProfile'))).toContain(
+            JwtAuthGuard,
+        );
+        expect(Reflect.getMetadata(GUARDS_METADATA, getResolverMethod('deleteProfile'))).toContain(
+            JwtAuthGuard,
+        );
+        expect(
+            Reflect.getMetadata(GUARDS_METADATA, getResolverMethod('getProfile')),
+        ).toBeUndefined();
     });
 
     describe('createProfile', () => {
