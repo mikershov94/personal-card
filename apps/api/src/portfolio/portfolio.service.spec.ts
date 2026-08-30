@@ -3,16 +3,20 @@ import { Test, TestingModule } from '@nestjs/testing';
 
 import { CreateExperienceDto } from './dto/create-experience.input.dto';
 import { CreateProfileDto } from './dto/create-profile.input.dto';
+import { CreateProjectDto } from './dto/create-project.input.dto';
 import { CreateSkillDto } from './dto/create-skill.input.dto';
 import { UpdateExperienceDto } from './dto/update-experience.input.dto';
 import { UpdateProfileDto } from './dto/update-profile.input.dto';
+import { UpdateProjectDto } from './dto/update-project.input.dto';
 import { UpdateSkillDto } from './dto/update-skill.input.dto';
 import { ExperienceEntity } from './entities/experience.entity';
 import { ProfileEntity } from './entities/profile.entity';
+import { ProjectEntity } from './entities/project.entity';
 import { SkillEntity } from './entities/skill.entity';
 import { PortfolioService } from './portfolio.service';
 import { ExperienceRepository } from './repositories/experience.repository';
 import { ProfileRepository } from './repositories/profile.repository';
+import { ProjectRepository } from './repositories/project.repository';
 import { SkillRepository } from './repositories/skill.repository';
 
 describe('PortfolioService', () => {
@@ -39,6 +43,13 @@ describe('PortfolioService', () => {
         deleteSkill: jest.fn(),
         attachSkillToProfile: jest.fn(),
         detachSkillFromProfile: jest.fn(),
+    };
+
+    const projectRepositoryMock = {
+        createProject: jest.fn(),
+        getProject: jest.fn(),
+        updateProject: jest.fn(),
+        deleteProject: jest.fn(),
     };
 
     const experience: ExperienceEntity = {
@@ -74,6 +85,19 @@ describe('PortfolioService', () => {
         updatedAt: new Date('2026-08-30T00:00:00.000Z'),
     };
 
+    const project: ProjectEntity = {
+        id: '62fa4202-7d54-4b3b-94df-df8d880b157d',
+        experienceId: null,
+        title: 'Personal Card',
+        description: 'Portfolio application with GraphQL API.',
+        url: 'https://example.com',
+        repositoryUrl: 'https://github.com/example/personal-card',
+        sortOrder: 0,
+        createdAt: new Date('2026-08-30T00:00:00.000Z'),
+        updatedAt: new Date('2026-08-30T00:00:00.000Z'),
+        skills: [],
+    };
+
     beforeEach(async () => {
         jest.resetAllMocks();
 
@@ -91,6 +115,10 @@ describe('PortfolioService', () => {
                 {
                     provide: SkillRepository,
                     useValue: skillRepositoryMock,
+                },
+                {
+                    provide: ProjectRepository,
+                    useValue: projectRepositoryMock,
                 },
             ],
         }).compile();
@@ -321,6 +349,146 @@ describe('PortfolioService', () => {
             experienceRepositoryMock.deleteExperience.mockRejectedValue(error);
 
             await expect(service.deleteExperience(experience.id)).rejects.toBe(error);
+        });
+    });
+
+    describe('createProject', () => {
+        const createProjectDto: CreateProjectDto = {
+            title: project.title,
+            description: project.description,
+            url: project.url,
+            repositoryUrl: project.repositoryUrl,
+        };
+
+        it('должен проверить профиль, создать и вернуть личный проект', async () => {
+            profileRepositoryMock.getProfile.mockResolvedValue(profile);
+            projectRepositoryMock.createProject.mockResolvedValue(project);
+
+            await expect(service.createProject(createProjectDto)).resolves.toEqual(project);
+            expect(profileRepositoryMock.getProfile).toHaveBeenCalledTimes(1);
+            expect(experienceRepositoryMock.getExperience).not.toHaveBeenCalled();
+            expect(projectRepositoryMock.createProject).toHaveBeenCalledWith(createProjectDto);
+        });
+
+        it('должен проверить опыт перед созданием связанного проекта', async () => {
+            const dto: CreateProjectDto = {
+                ...createProjectDto,
+                experienceId: experience.id,
+            };
+            const linkedProject: ProjectEntity = { ...project, experienceId: experience.id };
+            profileRepositoryMock.getProfile.mockResolvedValue(profile);
+            experienceRepositoryMock.getExperience.mockResolvedValue(experience);
+            projectRepositoryMock.createProject.mockResolvedValue(linkedProject);
+
+            await expect(service.createProject(dto)).resolves.toEqual(linkedProject);
+            expect(profileRepositoryMock.getProfile).toHaveBeenCalledTimes(1);
+            expect(experienceRepositoryMock.getExperience).toHaveBeenCalledWith(experience.id);
+            expect(projectRepositoryMock.createProject).toHaveBeenCalledWith(dto);
+        });
+
+        it('не должен создавать проект, если основной профиль отсутствует', async () => {
+            const error = new NotFoundException('Профиль пуст');
+            profileRepositoryMock.getProfile.mockRejectedValue(error);
+
+            await expect(service.createProject(createProjectDto)).rejects.toBe(error);
+            expect(experienceRepositoryMock.getExperience).not.toHaveBeenCalled();
+            expect(projectRepositoryMock.createProject).not.toHaveBeenCalled();
+        });
+
+        it('не должен создавать проект, если связанный опыт отсутствует', async () => {
+            const error = new NotFoundException('Запись об опыте не найдена');
+            const dto: CreateProjectDto = {
+                ...createProjectDto,
+                experienceId: experience.id,
+            };
+            profileRepositoryMock.getProfile.mockResolvedValue(profile);
+            experienceRepositoryMock.getExperience.mockRejectedValue(error);
+
+            await expect(service.createProject(dto)).rejects.toBe(error);
+            expect(projectRepositoryMock.createProject).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('updateProject', () => {
+        const updateProjectDto: UpdateProjectDto = {
+            title: 'Updated project',
+            experienceId: experience.id,
+        };
+
+        it('должен проверить проект и новый опыт, затем обновить и вернуть проект', async () => {
+            const updatedProject: ProjectEntity = {
+                ...project,
+                ...updateProjectDto,
+            };
+            projectRepositoryMock.getProject.mockResolvedValue(project);
+            experienceRepositoryMock.getExperience.mockResolvedValue(experience);
+            projectRepositoryMock.updateProject.mockResolvedValue(updatedProject);
+
+            await expect(service.updateProject(project.id, updateProjectDto)).resolves.toEqual(
+                updatedProject,
+            );
+            expect(projectRepositoryMock.getProject).toHaveBeenCalledWith(project.id);
+            expect(experienceRepositoryMock.getExperience).toHaveBeenCalledWith(experience.id);
+            expect(projectRepositoryMock.updateProject).toHaveBeenCalledWith(
+                project.id,
+                updateProjectDto,
+            );
+        });
+
+        it('должен обновить проект без проверки опыта, если experienceId отсутствует', async () => {
+            const dto: UpdateProjectDto = { title: 'Updated project' };
+            const updatedProject: ProjectEntity = { ...project, ...dto };
+            projectRepositoryMock.getProject.mockResolvedValue(project);
+            projectRepositoryMock.updateProject.mockResolvedValue(updatedProject);
+
+            await expect(service.updateProject(project.id, dto)).resolves.toEqual(updatedProject);
+            expect(experienceRepositoryMock.getExperience).not.toHaveBeenCalled();
+            expect(projectRepositoryMock.updateProject).toHaveBeenCalledWith(project.id, dto);
+        });
+
+        it('должен перевести проект в личный без проверки опыта при experienceId null', async () => {
+            const dto: UpdateProjectDto = { experienceId: null };
+            const linkedProject: ProjectEntity = { ...project, experienceId: experience.id };
+            projectRepositoryMock.getProject.mockResolvedValue(linkedProject);
+            projectRepositoryMock.updateProject.mockResolvedValue(project);
+
+            await expect(service.updateProject(project.id, dto)).resolves.toEqual(project);
+            expect(experienceRepositoryMock.getExperience).not.toHaveBeenCalled();
+            expect(projectRepositoryMock.updateProject).toHaveBeenCalledWith(project.id, dto);
+        });
+
+        it('не должен обновлять проект, если проект отсутствует', async () => {
+            const error = new NotFoundException('Проект не найден');
+            projectRepositoryMock.getProject.mockRejectedValue(error);
+
+            await expect(service.updateProject(project.id, updateProjectDto)).rejects.toBe(error);
+            expect(experienceRepositoryMock.getExperience).not.toHaveBeenCalled();
+            expect(projectRepositoryMock.updateProject).not.toHaveBeenCalled();
+        });
+
+        it('не должен обновлять проект, если новый опыт отсутствует', async () => {
+            const error = new NotFoundException('Запись об опыте не найдена');
+            projectRepositoryMock.getProject.mockResolvedValue(project);
+            experienceRepositoryMock.getExperience.mockRejectedValue(error);
+
+            await expect(service.updateProject(project.id, updateProjectDto)).rejects.toBe(error);
+            expect(projectRepositoryMock.updateProject).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('deleteProject', () => {
+        it('должен удалить проект', async () => {
+            projectRepositoryMock.deleteProject.mockResolvedValue(project);
+
+            await expect(service.deleteProject(project.id)).resolves.toBeUndefined();
+            expect(projectRepositoryMock.deleteProject).toHaveBeenCalledWith(project.id);
+        });
+
+        it('должен пробросить ошибку удаления Project', async () => {
+            const error = new NotFoundException('Проект не найден');
+            projectRepositoryMock.deleteProject.mockRejectedValue(error);
+
+            await expect(service.deleteProject(project.id)).rejects.toBe(error);
         });
     });
 

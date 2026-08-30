@@ -2,15 +2,19 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 
 import { CreateExperienceDto } from './dto/create-experience.input.dto';
 import { CreateProfileDto } from './dto/create-profile.input.dto';
+import { CreateProjectDto } from './dto/create-project.input.dto';
 import { CreateSkillDto } from './dto/create-skill.input.dto';
 import { UpdateExperienceDto } from './dto/update-experience.input.dto';
 import { UpdateProfileDto } from './dto/update-profile.input.dto';
+import { UpdateProjectDto } from './dto/update-project.input.dto';
 import { UpdateSkillDto } from './dto/update-skill.input.dto';
 import { ExperienceEntity } from './entities/experience.entity';
 import { ProfileEntity } from './entities/profile.entity';
+import { ProjectEntity } from './entities/project.entity';
 import { SkillEntity } from './entities/skill.entity';
 import { ExperienceRepository } from './repositories/experience.repository';
 import { ProfileRepository } from './repositories/profile.repository';
+import { ProjectRepository } from './repositories/project.repository';
 import { SkillRepository } from './repositories/skill.repository';
 
 @Injectable()
@@ -19,6 +23,7 @@ export class PortfolioService {
         private readonly profileRepo: ProfileRepository,
         private readonly experienceRepo: ExperienceRepository,
         private readonly skillRepo: SkillRepository,
+        private readonly projectRepo: ProjectRepository,
     ) {}
 
     public async createProfile(dto: CreateProfileDto): Promise<ProfileEntity> {
@@ -56,6 +61,30 @@ export class PortfolioService {
 
     public async deleteExperience(id: string): Promise<void> {
         await this.experienceRepo.deleteExperience(id);
+    }
+
+    public async createProject(dto: CreateProjectDto): Promise<ProjectEntity> {
+        await this.profileRepo.getProfile();
+
+        if (dto.experienceId) {
+            await this.experienceRepo.getExperience(dto.experienceId);
+        }
+
+        return this.projectRepo.createProject(dto);
+    }
+
+    public async updateProject(id: string, dto: UpdateProjectDto): Promise<ProjectEntity> {
+        await this.projectRepo.getProject(id);
+
+        if (dto.experienceId) {
+            await this.experienceRepo.getExperience(dto.experienceId);
+        }
+
+        return this.projectRepo.updateProject(id, dto);
+    }
+
+    public async deleteProject(id: string): Promise<void> {
+        await this.projectRepo.deleteProject(id);
     }
 
     public async createSkill(dto: CreateSkillDto): Promise<SkillEntity> {
