@@ -1,4 +1,4 @@
-import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import { ExecutionContext } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 
@@ -12,6 +12,14 @@ describe('JWT guard аутентификации', () => {
     };
 
     const originalEnv = process.env;
+
+    const expectedUnauthorizedError = {
+        message: 'Требуется действительный access token',
+        extensions: {
+            code: 'UNAUTHENTICATED',
+            http: { status: 401 },
+        },
+    };
 
     function createContext(authorization?: string): ExecutionContext {
         const args = [undefined, undefined, { req: { headers: { authorization } } }, undefined];
@@ -61,8 +69,8 @@ describe('JWT guard аутентификации', () => {
     it.each([undefined, '', 'Basic token', 'Bearer', 'Bearer token extra'])(
         'должен отклонить некорректный заголовок Authorization: %s',
         async (authorization) => {
-            await expect(guard.canActivate(createContext(authorization))).rejects.toEqual(
-                new UnauthorizedException('Требуется действительный access token'),
+            await expect(guard.canActivate(createContext(authorization))).rejects.toMatchObject(
+                expectedUnauthorizedError,
             );
             expect(jwtServiceMock.verifyAsync).not.toHaveBeenCalled();
         },
@@ -71,16 +79,16 @@ describe('JWT guard аутентификации', () => {
     it.each(['повреждённый', 'истёкший'])('должен отклонить %s токен', async (_case) => {
         jwtServiceMock.verifyAsync.mockRejectedValue(new Error('JWT verification failed'));
 
-        await expect(guard.canActivate(createContext('Bearer invalid-token'))).rejects.toEqual(
-            new UnauthorizedException('Требуется действительный access token'),
-        );
+        await expect(
+            guard.canActivate(createContext('Bearer invalid-token')),
+        ).rejects.toMatchObject(expectedUnauthorizedError);
     });
 
     it('должен отклонить запрос при отсутствии JWT secret', async () => {
         delete process.env.AUTH_JWT_SECRET;
 
-        await expect(guard.canActivate(createContext('Bearer valid-token'))).rejects.toEqual(
-            new UnauthorizedException('Требуется действительный access token'),
+        await expect(guard.canActivate(createContext('Bearer valid-token'))).rejects.toMatchObject(
+            expectedUnauthorizedError,
         );
         expect(jwtServiceMock.verifyAsync).not.toHaveBeenCalled();
     });

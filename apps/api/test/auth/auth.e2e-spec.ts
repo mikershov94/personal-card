@@ -124,13 +124,18 @@ describe('Аутентификация GraphQL (e2e)', () => {
             graphqlRequest.set('Authorization', authorization);
         }
 
-        const response = await graphqlRequest
-            .send({ query: createProfileMutation, variables: { input: createProfileInput } })
-            .expect(200);
+        const response = await graphqlRequest.send({
+            query: createProfileMutation,
+            variables: { input: createProfileInput },
+        });
         const body = response.body as GraphqlResponse<{ createProfile: ProfileResponse }>;
 
         expect(body.data).toBeNull();
-        expect(body.errors?.[0]?.message).toBe('Требуется действительный access token');
+        expect(body.errors?.[0]).toMatchObject({
+            message: 'Требуется действительный access token',
+            extensions: { code: 'UNAUTHENTICATED' },
+        });
+        expect(response.status).toBe(401);
         await expect(prismaService.profile.count()).resolves.toBe(0);
     });
 
@@ -142,12 +147,15 @@ describe('Аутентификация GraphQL (e2e)', () => {
         const response = await request(app.getHttpServer())
             .post('/graphql')
             .set('Authorization', `Bearer ${expiredToken}`)
-            .send({ query: createProfileMutation, variables: { input: createProfileInput } })
-            .expect(200);
+            .send({ query: createProfileMutation, variables: { input: createProfileInput } });
         const body = response.body as GraphqlResponse<{ createProfile: ProfileResponse }>;
 
         expect(body.data).toBeNull();
-        expect(body.errors?.[0]?.message).toBe('Требуется действительный access token');
+        expect(body.errors?.[0]).toMatchObject({
+            message: 'Требуется действительный access token',
+            extensions: { code: 'UNAUTHENTICATED' },
+        });
+        expect(response.status).toBe(401);
     });
 
     it('должно выполнить Portfolio-мутацию с валидным access token', async () => {
