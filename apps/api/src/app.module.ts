@@ -20,6 +20,7 @@ import { PrismaModule } from './prisma/prisma.module';
             sortSchema: true,
             introspection: true,
             context: ({ req }: { req: Request }) => ({ req }),
+            preserveHttpStatusForExecutionErrors: false,
         }),
         InquiriesModule,
         PrismaModule,

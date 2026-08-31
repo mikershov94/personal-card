@@ -175,7 +175,10 @@ GraphQL login -> AuthResolver -> AuthService -> Argon2 verify -> JwtService sign
 `login`, `createInquiry` и все GraphQL queries доступны без токена. Управляющие Portfolio-мутации
 защищаются точечным `JwtAuthGuard`. Guard получает HTTP request из GraphQL context, извлекает строго
 `Bearer <token>` и проверяет подпись и срок действия через `JwtService`. Отсутствующий,
-повреждённый или истёкший токен приводит к `UnauthorizedException` с единым публичным сообщением.
+повреждённый или истёкший токен приводит к GraphQL-ошибке с единым публичным сообщением, машинным
+кодом `UNAUTHENTICATED` и HTTP-статусом `401 Unauthorized`. Чтобы Apollo не сбрасывал статус ошибки
+выполнения операции на `200`, GraphQL-модуль использует
+`preserveHttpStatusForExecutionErrors: false`.
 
 Auth-модуль не использует repository и Prisma: постоянное хранение в этом сценарии отсутствует.
 GraphQL input и output оформляются DTO, поскольку auth payload не является хранимой предметной

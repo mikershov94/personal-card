@@ -1,7 +1,8 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
+import { GraphQLError } from 'graphql';
 
 const UNAUTHORIZED_ERROR = 'Требуется действительный access token';
 
@@ -15,13 +16,13 @@ export class JwtAuthGuard implements CanActivate {
         const jwtSecret = process.env.AUTH_JWT_SECRET;
 
         if (!token || !jwtSecret) {
-            throw new UnauthorizedException(UNAUTHORIZED_ERROR);
+            throw this.createUnauthorizedError();
         }
 
         try {
             await this.jwtService.verifyAsync(token, { secret: jwtSecret });
         } catch {
-            throw new UnauthorizedException(UNAUTHORIZED_ERROR);
+            throw this.createUnauthorizedError();
         }
 
         return true;
@@ -31,5 +32,14 @@ export class JwtAuthGuard implements CanActivate {
         const parts = request.headers.authorization?.split(' ') ?? [];
 
         return parts.length === 2 && parts[0] === 'Bearer' && parts[1] ? parts[1] : undefined;
+    }
+
+    private createUnauthorizedError(): GraphQLError {
+        return new GraphQLError(UNAUTHORIZED_ERROR, {
+            extensions: {
+                code: 'UNAUTHENTICATED',
+                http: { status: 401 },
+            },
+        });
     }
 }

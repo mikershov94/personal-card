@@ -65,7 +65,10 @@ export type ProjectSkillResponse = {
 
 export type GraphqlResponse<TData> = {
     data: TData | null;
-    errors?: Array<{ message: string }>;
+    errors?: Array<{
+        message: string;
+        extensions?: Record<string, unknown>;
+    }>;
 };
 
 export type PortfolioNestApplication = INestApplication & {
