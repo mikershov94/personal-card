@@ -61,37 +61,37 @@
 ### Информационная архитектура
 
 1. Header
-   - имя или короткий wordmark;
-   - якорная навигация по основным секциям;
-   - заметный CTA «Связаться»;
-   - компактная мобильная навигация.
+    - имя или короткий wordmark;
+    - якорная навигация по основным секциям;
+    - заметный CTA «Связаться»;
+    - компактная мобильная навигация.
 2. Hero
-   - аватар;
-   - `displayName`;
-   - `headline`;
-   - `location`;
-   - короткое позиционирование из `summary`;
-   - переход к проектам и форме обращения.
+    - аватар;
+    - `displayName`;
+    - `headline`;
+    - `location`;
+    - короткое позиционирование из `summary`;
+    - переход к проектам и форме обращения.
 3. Skills
-   - упорядоченный список `Profile.skills`;
-   - компактные теги без искусственных рейтингов и процентов.
+    - упорядоченный список `Profile.skills`;
+    - компактные теги без искусственных рейтингов и процентов.
 4. Experience
-   - вертикальная временная шкала;
-   - компания, позиция, период, локация и описание;
-   - рабочие проекты показываются внутри соответствующего опыта.
+    - вертикальная временная шкала;
+    - компания, позиция, период, локация и описание;
+    - рабочие проекты показываются внутри соответствующего опыта.
 5. Personal projects
-   - отдельный блок `Profile.projects`;
-   - название, описание, технологии, demo URL и repository URL;
-   - явное различие между demo и исходным кодом.
+    - отдельный блок `Profile.projects`;
+    - название, описание, технологии, demo URL и repository URL;
+    - явное различие между demo и исходным кодом.
 6. About
-   - расширенный текст профиля, если он не был полностью использован в hero;
-   - блок не дублирует содержание hero дословно.
+    - расширенный текст профиля, если он не был полностью использован в hero;
+    - блок не дублирует содержание hero дословно.
 7. Contact
-   - имя, email, компания и сообщение;
-   - понятные состояния отправки, успеха и ошибки.
+    - имя, email, компания и сообщение;
+    - понятные состояния отправки, успеха и ошибки.
 8. Footer
-   - повтор ключевой навигации;
-   - внешние ссылки после появления соответствующего backend-контракта.
+    - повтор ключевой навигации;
+    - внешние ссылки после появления соответствующего backend-контракта.
 
 ### Адаптивность
 
@@ -255,7 +255,6 @@ Server Action исключает прямой браузерный запрос 
   `getProfile`.
 - `features/send-inquiry` является единственной пользовательской mutation-фичей первого этапа.
 - Каждый slice и значимый segment предоставляет публичный API через `index.ts`.
-- Server-only exports отделяются через `index.server.ts`.
 - Внешний код не импортирует внутренние файлы slice в обход public API.
 - Модуль одного slice импортирует другие slice только с нижележащих FSD-слоёв.
 
@@ -280,7 +279,7 @@ apps/public/src/
 │   ├── api-routes/
 │   │   └── revalidate-portfolio/
 │   │       ├── api/
-│   │       ├── index.server.ts
+│   │       ├── index.ts
 │   │       └── route-handler.ts
 │   └── styles/
 │       ├── globals.css
@@ -297,47 +296,55 @@ apps/public/src/
 │       │       ├── personal-projects-section.tsx
 │       │       ├── about-section.tsx
 │       │       └── contact-section.tsx
-│       ├── index.ts
-│       └── index.server.ts
+│       └── index.ts
 │
 ├── features/
 │   └── send-inquiry/
 │       ├── api/
 │       │   └── send-inquiry.ts
 │       ├── model/
-│       │   ├── inquiry-form.types.ts
+│       │   ├── inquiry-form.ts
 │       │   └── map-inquiry-error.ts
 │       ├── ui/
 │       │   └── inquiry-form.tsx
-│       ├── index.ts
-│       └── index.server.ts
+│       └── index.ts
 │
 ├── entities/
 │   └── portfolio/
 │       ├── api/
-│       │   ├── get-portfolio.query.ts
+│       │   ├── graphql/
+│       │   │   ├── fetch-portfolio.ts
+│       │   │   ├── get-profile.query.ts
+│       │   │   └── portfolio-errors.ts
 │       │   └── get-portfolio.ts
 │       ├── model/
-│       │   ├── portfolio.types.ts
-│       │   └── map-portfolio.ts
+│       │   ├── mapping/
+│       │   │   └── map-portfolio.ts
+│       │   └── portfolio.ts
 │       ├── ui/
 │       │   ├── date-range.tsx
 │       │   ├── experience-card.tsx
 │       │   ├── project-card.tsx
 │       │   ├── project-links.tsx
 │       │   └── skill-tag.tsx
-│       ├── index.ts
-│       └── index.server.ts
+│       └── index.ts
 │
 └── shared/
     ├── api/
     │   └── graphql/
+    │       ├── _tests/
+    │       ├── graphql-error-status.ts
     │       ├── graphql-request.ts
-    │       └── graphql-response.types.ts
+    │       ├── graphql-response.guards.ts
+    │       └── graphql-response.ts
     ├── config/
-    │   └── env.ts
+    │   └── env/
+    │       └── server-env.ts
     ├── lib/
-    │   └── date/
+    │   ├── date/
+    │   └── typeguards/
+    │       ├── _tests/
+    │       └── is-record.ts
     ├── routes/
     └── ui/
         ├── button/
@@ -557,35 +564,35 @@ UX-прототип и визуальное направление уже сог
 Коммит-размерные блоки:
 
 1. Frontend foundation
-   - создать минимальную FSD-структуру;
-   - перенести визуальные решения прототипа в design tokens и global styles;
-   - настроить проверяемый server-only env config;
-   - создать только необходимые UI primitives;
-   - заменить metadata-заглушки.
+    - создать минимальную FSD-структуру;
+    - перенести визуальные решения прототипа в design tokens и global styles;
+    - настроить проверяемый server-only env config;
+    - создать только необходимые UI primitives;
+    - заменить metadata-заглушки.
 2. GraphQL profile read model
-   - реализовать минимальный GraphQL transport через `fetch`;
-   - описать минимальный `getProfile` query для профиля и навыков;
-   - типизировать и преобразовать данные в публичную view model;
-   - добавить контролируемые contract и network errors;
-   - покрыть mapper unit-тестами.
+    - реализовать минимальный GraphQL transport через `fetch`;
+    - описать минимальный `getProfile` query для профиля и навыков;
+    - типизировать и преобразовать данные в публичную view model;
+    - добавить контролируемые contract и network errors;
+    - покрыть mapper unit-тестами.
 3. On-demand ISR
-   - подтвердить SSR-runtime текущего приложения Timeweb;
-   - включить и проверить Cache Components;
-   - кэшировать публичный read model и присвоить portfolio cache tag;
-   - реализовать защищённый endpoint ревалидации;
-   - добавить имена environment variables без реальных значений;
-   - проверить build-time generation, регенерацию и повторное использование кэша.
+    - подтвердить SSR-runtime текущего приложения Timeweb;
+    - включить и проверить Cache Components;
+    - кэшировать публичный read model и присвоить portfolio cache tag;
+    - реализовать защищённый endpoint ревалидации;
+    - добавить имена environment variables без реальных значений;
+    - проверить build-time generation, регенерацию и повторное использование кэша.
 4. Profile UI
-   - реализовать header, hero, skills, about и footer;
-   - добавить якорную навигацию;
-   - реализовать responsive, loading, empty и error states;
-   - не переносить демонстрационные данные из прототипа в production-код.
+    - реализовать header, hero, skills, about и footer;
+    - добавить якорную навигацию;
+    - реализовать responsive, loading, empty и error states;
+    - не переносить демонстрационные данные из прототипа в production-код.
 5. Готовность сценария
-   - заполнить metadata и canonical URL;
-   - добавить Open Graph, robots и sitemap;
-   - проверить keyboard navigation, focus, contrast, zoom и reduced motion;
-   - проверить production build и route classification;
-   - описать FSD-границы и безопасный процесс ревалидации.
+    - заполнить metadata и canonical URL;
+    - добавить Open Graph, robots и sitemap;
+    - проверить keyboard navigation, focus, contrast, zoom и reduced motion;
+    - проверить production build и route classification;
+    - описать FSD-границы и безопасный процесс ревалидации.
 
 Результат ветки: `/` показывает статически сгенерированные профиль и навыки, а обновление данных не
 требует нового frontend deployment.
@@ -597,20 +604,20 @@ UX-прототип и визуальное направление уже сог
 Коммит-размерные блоки:
 
 1. Experience read model
-   - расширить `getProfile` полями опыта;
-   - типизировать опыт и nullable-поля;
-   - реализовать форматирование диапазона дат и текущего места работы;
-   - покрыть преобразование и сортировку тестами.
+    - расширить `getProfile` полями опыта;
+    - типизировать опыт и nullable-поля;
+    - реализовать форматирование диапазона дат и текущего места работы;
+    - покрыть преобразование и сортировку тестами.
 2. Experience UI
-   - реализовать timeline опыта;
-   - показать компанию, позицию, период, location и description;
-   - реализовать отсутствие опыта и nullable-данных;
-   - добавить responsive и доступную семантическую структуру.
+    - реализовать timeline опыта;
+    - показать компанию, позицию, период, location и description;
+    - реализовать отсутствие опыта и nullable-данных;
+    - добавить responsive и доступную семантическую структуру.
 3. Готовность сценария
-   - добавить component/browser tests сценария;
-   - проверить ISR с расширенным query;
-   - выполнить quality checks и production build;
-   - обновить документацию устойчивого codepath.
+    - добавить component/browser tests сценария;
+    - проверить ISR с расширенным query;
+    - выполнить quality checks и production build;
+    - обновить документацию устойчивого codepath.
 
 Результат ветки: посетитель просматривает упорядоченный опыт работы, а страница остаётся статической
 между ревалидациями.
@@ -622,21 +629,21 @@ UX-прототип и визуальное направление уже сог
 Коммит-размерные блоки:
 
 1. Project read model
-   - расширить `getProfile` вложенными и личными проектами;
-   - типизировать навыки и внешние ссылки проектов;
-   - явно разделить рабочие и личные проекты;
-   - покрыть преобразование, порядок и nullable URL тестами.
+    - расширить `getProfile` вложенными и личными проектами;
+    - типизировать навыки и внешние ссылки проектов;
+    - явно разделить рабочие и личные проекты;
+    - покрыть преобразование, порядок и nullable URL тестами.
 2. Projects UI
-   - показывать рабочие проекты внутри соответствующего experience;
-   - реализовать отдельную секцию личных проектов;
-   - показать project skills;
-   - отображать только существующие demo и repository actions;
-   - реализовать empty states и responsive layout.
+    - показывать рабочие проекты внутри соответствующего experience;
+    - реализовать отдельную секцию личных проектов;
+    - показать project skills;
+    - отображать только существующие demo и repository actions;
+    - реализовать empty states и responsive layout.
 3. Готовность сценария
-   - проверить доступные названия внешних ссылок и keyboard navigation;
-   - добавить component/browser tests;
-   - проверить ISR с полным публичным агрегатом;
-   - выполнить quality checks, production build и обновить документацию.
+    - проверить доступные названия внешних ссылок и keyboard navigation;
+    - добавить component/browser tests;
+    - проверить ISR с полным публичным агрегатом;
+    - выполнить quality checks, production build и обновить документацию.
 
 Результат ветки: посетитель различает рабочие и личные проекты и может перейти к доступным внешним
 ресурсам.
@@ -648,23 +655,23 @@ UX-прототип и визуальное направление уже сог
 Коммит-размерные блоки:
 
 1. Inquiry mutation contract
-   - описать `createInquiry` operation и типы;
-   - синхронизировать frontend validation с backend-контрактом;
-   - нормализовать validation, GraphQL и network errors;
-   - покрыть contract и error mapping unit-тестами.
+    - описать `createInquiry` operation и типы;
+    - синхронизировать frontend validation с backend-контрактом;
+    - нормализовать validation, GraphQL и network errors;
+    - покрыть contract и error mapping unit-тестами.
 2. Inquiry form
-   - реализовать `InquiryForm` как минимальный Client Component;
-   - добавить Server Action для `createInquiry`;
-   - реализовать pending, success и error states;
-   - сохранять введённые данные при ошибке;
-   - исключить прямой браузерный доступ к GraphQL.
+    - реализовать `InquiryForm` как минимальный Client Component;
+    - добавить Server Action для `createInquiry`;
+    - реализовать pending, success и error states;
+    - сохранять введённые данные при ошибке;
+    - исключить прямой браузерный доступ к GraphQL.
 3. Готовность сценария и public frontend
-   - проверить labels, error summary, live region и keyboard flow;
-   - добавить component/browser tests happy и negative paths;
-   - проверить реальный цикл отправки Inquiry;
-   - измерить Core Web Vitals и устранить подтверждённые проблемы;
-   - выполнить полный public quality gate и Timeweb smoke-check;
-   - обновить frontend-документацию и проектный индекс.
+    - проверить labels, error summary, live region и keyboard flow;
+    - добавить component/browser tests happy и negative paths;
+    - проверить реальный цикл отправки Inquiry;
+    - измерить Core Web Vitals и устранить подтверждённые проблемы;
+    - выполнить полный public quality gate и Timeweb smoke-check;
+    - обновить frontend-документацию и проектный индекс.
 
 Результат ветки: посетитель отправляет обращение с доступной обработкой всех наблюдаемых состояний.
 
