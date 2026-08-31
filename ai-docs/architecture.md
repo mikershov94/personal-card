@@ -160,6 +160,27 @@ Prisma -> Repository -> Service -> Resolver -> unit tests -> e2e tests
 Не следует делить ветки по техническим слоям, поскольку промежуточная ветка не предоставляет
 законченного публичного сценария.
 
+## Аутентификация административных мутаций
+
+Приложение использует учётные данные единственного администратора без пользовательской таблицы.
+Логин администратора, Argon2-хеш пароля, JWT secret и срок действия access token поступают только
+из переменных окружения. Реальные credentials и секреты не сохраняются в репозитории.
+
+Публичный auth codepath:
+
+```text
+GraphQL login -> AuthResolver -> AuthService -> Argon2 verify -> JwtService sign
+```
+
+`login`, `createInquiry` и все GraphQL queries доступны без токена. Управляющие Portfolio-мутации
+защищаются точечным `JwtAuthGuard`. Guard получает HTTP request из GraphQL context, извлекает строго
+`Bearer <token>` и проверяет подпись и срок действия через `JwtService`. Отсутствующий,
+повреждённый или истёкший токен приводит к `UnauthorizedException` с единым публичным сообщением.
+
+Auth-модуль не использует repository и Prisma: постоянное хранение в этом сценарии отсутствует.
+GraphQL input и output оформляются DTO, поскольку auth payload не является хранимой предметной
+сущностью.
+
 ### Миграции в feature-ветках
 
 Миграцию текущей feature-ветки можно пересоздать до merge, если в ходе реализации исправляется
@@ -176,7 +197,6 @@ Prisma -> Repository -> Service -> Resolver -> unit tests -> e2e tests
 Следующие вопросы пока не являются правилами проекта:
 
 - mapper-классы между Prisma-моделями и GraphQL entities;
-- авторизация административных GraphQL mutations;
 - структура frontend-приложения;
 - создание общих workspace-пакетов;
 - обязательный CRUD для каждого предметного модуля.
