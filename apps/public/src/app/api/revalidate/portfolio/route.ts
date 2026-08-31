@@ -5,6 +5,6 @@ import { serverEnv } from '@/shared/config/env';
 
 export function POST(request: Request): Response {
     return revalidatePortfolio(request, serverEnv.REVALIDATION_SECRET, (tag) => {
-        revalidateTag(tag, { expire: 0 });
+        revalidateTag(tag, 'max');
     });
 }

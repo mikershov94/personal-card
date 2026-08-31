@@ -31,7 +31,8 @@
         "test": "pnpm test:api && pnpm test:public",
         "test:api": "pnpm --filter api test",
         "test:public": "pnpm --filter public test",
-        "test:e2e": "node scripts/run-e2e.mjs"
+        "test:e2e": "node scripts/run-e2e.mjs",
+        "smoke:public": "pnpm --filter public smoke"
     },
     "author": "Michael E. Ershov",
     "devDependencies": {
