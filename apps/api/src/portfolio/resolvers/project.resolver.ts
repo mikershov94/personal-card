@@ -1,5 +1,7 @@
+import { UseGuards } from '@nestjs/common';
 import { Args, ID, Mutation, Resolver } from '@nestjs/graphql';
 
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CreateProjectDto } from '../dto/create-project.input.dto';
 import { UpdateProjectDto } from '../dto/update-project.input.dto';
 import { ProjectEntity } from '../entities/project.entity';
@@ -10,6 +12,7 @@ export class ProjectResolver {
     constructor(private readonly projectService: ProjectService) {}
 
     @Mutation(() => ProjectEntity)
+    @UseGuards(JwtAuthGuard)
     public createProject(
         @Args('input', { type: () => CreateProjectDto }) dto: CreateProjectDto,
     ): Promise<ProjectEntity> {
@@ -17,6 +20,7 @@ export class ProjectResolver {
     }
 
     @Mutation(() => ProjectEntity)
+    @UseGuards(JwtAuthGuard)
     public updateProject(
         @Args('id', { type: () => ID }) id: string,
         @Args('input', { type: () => UpdateProjectDto }) dto: UpdateProjectDto,
@@ -25,6 +29,7 @@ export class ProjectResolver {
     }
 
     @Mutation(() => Boolean)
+    @UseGuards(JwtAuthGuard)
     public async deleteProject(@Args('id', { type: () => ID }) id: string): Promise<boolean> {
         await this.projectService.deleteProject(id);
 

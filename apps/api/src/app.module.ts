@@ -1,10 +1,12 @@
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
+import { Request } from 'express';
 
 import { AppController } from './app.controller';
 import { AppResolver } from './app.resolver';
 import { AppService } from './app.service';
+import { AuthModule } from './auth/auth.module';
 import { HealthModule } from './health/health.module';
 import { InquiriesModule } from './inquiries/inquiries.module';
 import { PortfolioModule } from './portfolio/portfolio.module';
@@ -17,11 +19,13 @@ import { PrismaModule } from './prisma/prisma.module';
             autoSchemaFile: true,
             sortSchema: true,
             introspection: true,
+            context: ({ req }: { req: Request }) => ({ req }),
         }),
         InquiriesModule,
         PrismaModule,
         HealthModule,
         PortfolioModule,
+        AuthModule,
     ],
     controllers: [AppController],
     providers: [AppResolver, AppService],

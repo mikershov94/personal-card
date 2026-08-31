@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 
+import { AuthModule } from '../auth/auth.module';
 import { PrismaModule } from '../prisma/prisma.module';
 import { ExperienceRepository } from './repositories/experience.repository';
 import { ProfileRepository } from './repositories/profile.repository';
@@ -15,7 +16,7 @@ import { ProjectService } from './services/project.service';
 import { SkillService } from './services/skill.service';
 
 @Module({
-    imports: [PrismaModule],
+    imports: [PrismaModule, AuthModule],
     providers: [
         ProfileRepository,
         ExperienceRepository,

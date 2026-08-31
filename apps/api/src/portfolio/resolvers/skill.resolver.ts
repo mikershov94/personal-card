@@ -1,5 +1,7 @@
+import { UseGuards } from '@nestjs/common';
 import { Args, ID, Int, Mutation, Resolver } from '@nestjs/graphql';
 
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CreateSkillDto } from '../dto/create-skill.input.dto';
 import { UpdateSkillDto } from '../dto/update-skill.input.dto';
 import { SkillEntity } from '../entities/skill.entity';
@@ -10,6 +12,7 @@ export class SkillResolver {
     constructor(private readonly skillService: SkillService) {}
 
     @Mutation(() => SkillEntity)
+    @UseGuards(JwtAuthGuard)
     public createSkill(
         @Args('input', { type: () => CreateSkillDto }) dto: CreateSkillDto,
     ): Promise<SkillEntity> {
@@ -17,6 +20,7 @@ export class SkillResolver {
     }
 
     @Mutation(() => SkillEntity)
+    @UseGuards(JwtAuthGuard)
     public updateSkill(
         @Args('id', { type: () => ID }) id: string,
         @Args('input', { type: () => UpdateSkillDto }) dto: UpdateSkillDto,
@@ -25,6 +29,7 @@ export class SkillResolver {
     }
 
     @Mutation(() => Boolean)
+    @UseGuards(JwtAuthGuard)
     public async deleteSkill(@Args('id', { type: () => ID }) id: string): Promise<boolean> {
         await this.skillService.deleteSkill(id);
 
@@ -32,6 +37,7 @@ export class SkillResolver {
     }
 
     @Mutation(() => Boolean)
+    @UseGuards(JwtAuthGuard)
     public async attachSkillToProfile(
         @Args('skillId', { type: () => ID }) skillId: string,
         @Args('sortOrder', { type: () => Int, nullable: true, defaultValue: 0 }) sortOrder = 0,
@@ -42,6 +48,7 @@ export class SkillResolver {
     }
 
     @Mutation(() => Boolean)
+    @UseGuards(JwtAuthGuard)
     public async detachSkillFromProfile(
         @Args('skillId', { type: () => ID }) skillId: string,
     ): Promise<boolean> {
@@ -51,6 +58,7 @@ export class SkillResolver {
     }
 
     @Mutation(() => Boolean)
+    @UseGuards(JwtAuthGuard)
     public async attachSkillToProject(
         @Args('projectId', { type: () => ID }) projectId: string,
         @Args('skillId', { type: () => ID }) skillId: string,
@@ -62,6 +70,7 @@ export class SkillResolver {
     }
 
     @Mutation(() => Boolean)
+    @UseGuards(JwtAuthGuard)
     public async detachSkillFromProject(
         @Args('projectId', { type: () => ID }) projectId: string,
         @Args('skillId', { type: () => ID }) skillId: string,

@@ -1,11 +1,24 @@
 import { ConflictException, NotFoundException } from '@nestjs/common';
+import { GUARDS_METADATA } from '@nestjs/common/constants';
+import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CreateSkillDto } from '../dto/create-skill.input.dto';
 import { UpdateSkillDto } from '../dto/update-skill.input.dto';
 import { SkillEntity } from '../entities/skill.entity';
 import { SkillService } from '../services/skill.service';
 import { SkillResolver } from './skill.resolver';
+
+function getResolverMethod(methodName: string): object {
+    const descriptor = Object.getOwnPropertyDescriptor(SkillResolver.prototype, methodName);
+
+    if (typeof descriptor?.value !== 'function') {
+        throw new Error(`Метод resolver не найден: ${methodName}`);
+    }
+
+    return descriptor.value as object;
+}
 
 describe('SkillResolver', () => {
     let resolver: SkillResolver;
@@ -31,7 +44,11 @@ describe('SkillResolver', () => {
         jest.resetAllMocks();
 
         const module: TestingModule = await Test.createTestingModule({
-            providers: [SkillResolver, { provide: SkillService, useValue: skillServiceMock }],
+            providers: [
+                SkillResolver,
+                { provide: SkillService, useValue: skillServiceMock },
+                { provide: JwtService, useValue: { verifyAsync: jest.fn() } },
+            ],
         }).compile();
 
         resolver = module.get<SkillResolver>(SkillResolver);
@@ -39,6 +56,24 @@ describe('SkillResolver', () => {
 
     it('должен быть определён', () => {
         expect(resolver).toBeDefined();
+    });
+
+    it('должен защищать все мутации JWT guard', () => {
+        const protectedMethods = [
+            'createSkill',
+            'updateSkill',
+            'deleteSkill',
+            'attachSkillToProfile',
+            'detachSkillFromProfile',
+            'attachSkillToProject',
+            'detachSkillFromProject',
+        ];
+
+        for (const methodName of protectedMethods) {
+            expect(Reflect.getMetadata(GUARDS_METADATA, getResolverMethod(methodName))).toContain(
+                JwtAuthGuard,
+            );
+        }
     });
 
     describe('createSkill', () => {
