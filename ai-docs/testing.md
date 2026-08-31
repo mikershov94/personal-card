@@ -76,8 +76,17 @@ pnpm pre-commit:check
 pnpm test:e2e --runInBand
 ```
 
-CI последовательно проверяет форматирование, ESLint, типы, unit-тесты, e2e-тесты и
-production build.
+CI выполняет проверки только для затронутых приложений:
+
+- `api-checks` генерирует Prisma Client, проверяет форматирование, ESLint и типы API, запускает
+  unit- и e2e-тесты, затем выполняет API production build;
+- `public-checks` проверяет форматирование, ESLint и типы public, затем выполняет public
+  production build через `next build`; frontend-тестов в этой job нет;
+- при изменении общих workspace/tooling-файлов запускаются обе job;
+- изменение только документации не запускает проверки приложений.
+
+Локальные полные команды сохраняют проверку всего монорепозитория: `pnpm pre-commit:check`
+охватывает оба приложения, а API e2e отдельно запускаются через `pnpm test:e2e --runInBand`.
 
 ## Пока не зафиксировано
 
