@@ -58,6 +58,33 @@
 - После merge и production-деплоя проверяются миграции, `/health/live`, `/health/ready` и
   изменённый публичный контракт.
 
+## Production CD
+
+- `cd-api` и `cd-public` запускаются событием `workflow_run` только после успешного push-run
+  `ci-pipeline` в `main`; pull request и упавший CI не запускают production job.
+- Job `detect-changes` передаёт отдельные production-флаги через artifact
+  `deployment-changes`. Docs-only и изменения локального `apps/public/Dockerfile` не требуют
+  деплоя.
+- API и public используют GitHub Environments `production-api` и `production-public`. В каждом
+  environment задаются secret `TIMEWEB_CLOUD_TOKEN` и variables `TIMEWEB_APP_ID`, `HEALTH_URL`.
+- API после успешного статуса Timeweb проверяет `/health/live` и `/health/ready`; public выполняет
+  HTTP smoke-check `HEALTH_URL`.
+- Для ручного повтора используется повтор соответствующей CD job в GitHub Actions. Повтор должен
+  сохранить исходный проверенный commit SHA.
+- Для rollback в Timeweb запускается новый деплой последнего известного рабочего commit SHA. Перед
+  откатом необходимо проверить совместимость уже применённых Prisma migrations.
+- Автодеплой в панели Timeweb отключается отдельно для обоих приложений после первого успешного
+  управляемого деплоя, чтобы исключить двойной запуск.
+
+Локальная проверка helper не требует токена и не обращается к Timeweb:
+
+```text
+node --test .github/scripts/timeweb-deploy.test.mjs
+```
+
+Тест покрывает успешный деплой, неуспешный конечный статус, отказ API и timeout. Реальный helper
+локально с production credentials не запускается: интеграционная проверка выполняется через CD.
+
 ## Рефакторинг
 
 - Рефакторинг не должен менять внешний контракт без отдельного согласования.

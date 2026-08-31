@@ -20,8 +20,41 @@ NestJS, Prisma, PostgreSQL и GraphQL.
 - Development и e2e используют разные конфигурации Compose и разные базы данных.
 - Production-образ API собирается корневым `Dockerfile`.
 - Перед запуском production API применяются миграции Prisma.
+- Public разворачивается в Timeweb как нативное Next.js-приложение; его локальный Dockerfile не
+  является production-образом.
 - В production используется управляемая PostgreSQL.
 - Секреты и реальные значения переменных окружения не сохраняются в Git.
+
+### Production-деплой
+
+Production CD разделён по приложениям и запускается только после успешного push-run
+`ci-pipeline` в `main`:
+
+```text
+push main -> ci-pipeline -> deployment-changes artifact
+                            ├── cd-api -> Timeweb API -> live/ready checks
+                            └── cd-public -> Timeweb API -> HTTP smoke-check
+```
+
+CI сохраняет deploy-флаги и SHA проверенного коммита в короткоживущем artifact. CD повторно
+проверяет SHA artifact против исходного CI run и передаёт этот commit SHA в Timeweb. Каждый
+workflow ожидает конечный статус конкретного созданного деплоя; параллельные деплои одного
+приложения запрещены отдельной concurrency group.
+
+API продолжает собираться Timeweb из корневого `Dockerfile`, а Prisma migrations выполняются
+`docker/api-entrypoint.sh` перед запуском приложения. GitHub Actions не получает доступ к
+production PostgreSQL.
+
+Production-конфигурация хранится в GitHub Environments `production-api` и `production-public`:
+
+- secret `TIMEWEB_CLOUD_TOKEN` — токен Timeweb Cloud API;
+- variable `TIMEWEB_APP_ID` — ID соответствующего приложения;
+- variable `HEALTH_URL` — базовый URL API или полный URL public-приложения.
+
+Реальные значения не документируются и не сохраняются в репозитории. Откат выполняется новым
+деплоем последнего известного рабочего commit SHA через Timeweb; миграции при этом должны оставаться
+обратно совместимыми. Встроенный автодеплой Timeweb отключается только после первого успешного
+деплоя через GitHub CD.
 
 ## Архитектура backend
 
