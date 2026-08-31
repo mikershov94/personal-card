@@ -1,0 +1,42 @@
+@import './tokens.css';
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    min-width: 20rem;
+    background: var(--color-background);
+    color: var(--color-text);
+    font-family: var(--font-sans), sans-serif;
+}
+
+body {
+    min-height: 100vh;
+    margin: 0;
+}
+
+button,
+input,
+textarea {
+    font: inherit;
+}
+
+a {
+    color: inherit;
+    text-underline-offset: 0.2em;
+}
+
+h1,
+h2 {
+    font-family: var(--font-serif), serif;
+    font-weight: 400;
+    letter-spacing: -0.035em;
+}
+
+:focus-visible {
+    outline: 0.2rem solid var(--color-accent);
+    outline-offset: 0.2rem;
+}

@@ -1,0 +1,25 @@
+:root {
+    color-scheme: light dark;
+
+    --color-background: light-dark(#f4f1e9, #111815);
+    --color-surface: light-dark(#e4e8dc, #1b2520);
+    --color-text: light-dark(#18201d, #edf2ef);
+    --color-text-muted: light-dark(#56615c, #b9c5bf);
+    --color-border: light-dark(#d4d0c5, #303a35);
+    --color-accent: light-dark(#c5ff67, #b6ed5e);
+    --color-accent-text: #17200f;
+
+    --page-inline-padding: clamp(1rem, 4vw, 2rem);
+    --page-max-width: 70rem;
+    --section-block-padding: clamp(4rem, 9vw, 8rem);
+    --radius-card: 1.4rem;
+    --radius-pill: 999px;
+
+    --transition-duration: 160ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    :root {
+        --transition-duration: 0ms;
+    }
+}
