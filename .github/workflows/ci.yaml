@@ -21,6 +21,8 @@ jobs:
         outputs:
             api: ${{ steps.filter.outputs.api }}
             public: ${{ steps.filter.outputs.public }}
+            api_deploy: ${{ steps.filter.outputs.api_deploy }}
+            public_deploy: ${{ steps.filter.outputs.public_deploy }}
 
         steps:
             - name: Checkout repo
@@ -33,6 +35,7 @@ jobs:
                   filters: |
                       api:
                         - 'apps/api/**'
+                        - 'docker/api-entrypoint.sh'
                         - 'scripts/run-e2e.mjs'
                         - 'compose.e2e.yaml'
                         - 'compose.yaml'
@@ -54,6 +57,41 @@ jobs:
                         - '.prettierrc'
                         - '.prettierignore'
                         - '.github/workflows/**'
+                      api_deploy:
+                        - 'apps/api/**'
+                        - 'docker/api-entrypoint.sh'
+                        - 'Dockerfile'
+                        - '.dockerignore'
+                        - 'package.json'
+                        - 'pnpm-lock.yaml'
+                        - 'pnpm-workspace.yaml'
+                      public_deploy:
+                        - 'apps/public/**'
+                        - '!apps/public/Dockerfile'
+                        - 'package.json'
+                        - 'pnpm-lock.yaml'
+                        - 'pnpm-workspace.yaml'
+
+            - name: Prepare deployment changes
+              env:
+                  API_DEPLOY: ${{ steps.filter.outputs.api_deploy }}
+                  PUBLIC_DEPLOY: ${{ steps.filter.outputs.public_deploy }}
+                  COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+              run: |
+                  mkdir deployment-changes
+                  printf '{"api":%s,"public":%s,"commit_sha":"%s"}\n' \
+                    "$API_DEPLOY" \
+                    "$PUBLIC_DEPLOY" \
+                    "$COMMIT_SHA" \
+                    > deployment-changes/changes.json
+
+            - name: Upload deployment changes
+              uses: actions/upload-artifact@v4
+              with:
+                  name: deployment-changes
+                  path: deployment-changes/changes.json
+                  if-no-files-found: error
+                  retention-days: 1
 
     api-checks:
         name: api-checks
