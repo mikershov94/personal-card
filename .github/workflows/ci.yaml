@@ -12,8 +12,53 @@ permissions:
     contents: read
 
 jobs:
-    checks:
-        name: checks
+    changes:
+        name: detect-changes
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            pull-requests: read
+        outputs:
+            api: ${{ steps.filter.outputs.api }}
+            public: ${{ steps.filter.outputs.public }}
+
+        steps:
+            - name: Checkout repo
+              uses: actions/checkout@v6
+
+            - name: Detect changed areas
+              id: filter
+              uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+              with:
+                  filters: |
+                      api:
+                        - 'apps/api/**'
+                        - 'scripts/run-e2e.mjs'
+                        - 'compose.e2e.yaml'
+                        - 'compose.yaml'
+                        - 'Dockerfile'
+                        - '.dockerignore'
+                        - 'package.json'
+                        - 'pnpm-lock.yaml'
+                        - 'pnpm-workspace.yaml'
+                        - 'eslint.config.mjs'
+                        - '.prettierrc'
+                        - '.prettierignore'
+                        - '.github/workflows/**'
+                      public:
+                        - 'apps/public/**'
+                        - 'package.json'
+                        - 'pnpm-lock.yaml'
+                        - 'pnpm-workspace.yaml'
+                        - 'eslint.config.mjs'
+                        - '.prettierrc'
+                        - '.prettierignore'
+                        - '.github/workflows/**'
+
+    api-checks:
+        name: api-checks
+        needs: changes
+        if: needs.changes.outputs.api == 'true'
         runs-on: ubuntu-latest
         timeout-minutes: 10
         env:
@@ -55,13 +100,13 @@ jobs:
               run: pnpm --filter api db:generate
 
             - name: Check formatting
-              run: pnpm format:check
+              run: pnpm format:check:api
 
             - name: Linting
-              run: pnpm lint
+              run: pnpm lint:api
 
             - name: Typecheck
-              run: pnpm typecheck
+              run: pnpm typecheck:api
 
             - name: Unit tests
               run: pnpm test --runInBand
@@ -70,4 +115,40 @@ jobs:
               run: pnpm test:e2e --runInBand
 
             - name: Build
-              run: pnpm build
+              run: pnpm build:api
+
+    public-checks:
+        name: public-checks
+        needs: changes
+        if: needs.changes.outputs.public == 'true'
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+
+        steps:
+            - name: Checkout repo
+              uses: actions/checkout@v6
+
+            - name: Install pnpm
+              uses: pnpm/action-setup@v6
+
+            - name: Install Node.js
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+                  cache: pnpm
+                  cache-dependency-path: pnpm-lock.yaml
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Check formatting
+              run: pnpm format:check:public
+
+            - name: Linting
+              run: pnpm lint:public
+
+            - name: Typecheck
+              run: pnpm typecheck:public
+
+            - name: Build
+              run: pnpm build:public
