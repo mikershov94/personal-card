@@ -3,11 +3,19 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { Portfolio } from '@/entities/portfolio';
 
-const { getPortfolioMock } = vi.hoisted(() => ({
-    getPortfolioMock: vi.fn<() => Promise<Portfolio>>(),
-}));
+const { getPortfolioMock, PortfolioNotFoundErrorMock } = vi.hoisted(() => {
+    class PortfolioNotFoundErrorMock extends Error {}
 
-vi.mock('@/entities/portfolio', () => ({ getPortfolio: getPortfolioMock }));
+    return {
+        getPortfolioMock: vi.fn<() => Promise<Portfolio>>(),
+        PortfolioNotFoundErrorMock,
+    };
+});
+
+vi.mock('@/entities/portfolio', () => ({
+    getPortfolio: getPortfolioMock,
+    PortfolioNotFoundError: PortfolioNotFoundErrorMock,
+}));
 
 import { PortfolioPage } from './portfolio-page';
 
@@ -60,5 +68,31 @@ describe('Страница портфолио', () => {
         expect(screen.queryByRole('heading', { name: 'Обо мне' })).not.toBeInTheDocument();
         expect(screen.queryByRole('link', { name: 'Навыки' })).not.toBeInTheDocument();
         expect(screen.queryByRole('link', { name: 'Обо мне' })).not.toBeInTheDocument();
+    });
+
+    it('показывает ожидаемое состояние отсутствующего профиля', async () => {
+        getPortfolioMock.mockRejectedValue(new PortfolioNotFoundErrorMock());
+
+        render(await PortfolioPage());
+
+        expect(screen.getByRole('main')).toHaveAccessibleName('Профиль не найден');
+        expect(screen.getByText('Публичный профиль пока недоступен.')).toBeVisible();
+    });
+
+    it('показывает empty state для незаполненного профиля', async () => {
+        getPortfolioMock.mockResolvedValue({
+            displayName: '',
+            headline: '',
+            heroSummary: '',
+            about: [],
+            location: '',
+            avatarUrl: '',
+            skills: [],
+        });
+
+        render(await PortfolioPage());
+
+        expect(screen.getByRole('main')).toHaveAccessibleName('Профиль пока не заполнен');
+        expect(screen.getByText('Информация появится здесь позже.')).toBeVisible();
     });
 });

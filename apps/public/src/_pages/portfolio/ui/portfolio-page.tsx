@@ -1,11 +1,36 @@
 import Image from 'next/image';
 
-import { getPortfolio } from '@/entities/portfolio';
+import { getPortfolio, type Portfolio, PortfolioNotFoundError } from '@/entities/portfolio';
 
 import styles from './portfolio-page.module.css';
 
 export async function PortfolioPage() {
-    const portfolio = await getPortfolio();
+    let portfolio: Portfolio;
+
+    try {
+        portfolio = await getPortfolio();
+    } catch (error) {
+        if (error instanceof PortfolioNotFoundError) {
+            return (
+                <PortfolioState
+                    title="Профиль не найден"
+                    description="Публичный профиль пока недоступен."
+                />
+            );
+        }
+
+        throw error;
+    }
+
+    if (isPortfolioEmpty(portfolio)) {
+        return (
+            <PortfolioState
+                title="Профиль пока не заполнен"
+                description="Информация появится здесь позже."
+            />
+        );
+    }
+
     const hasSkills = portfolio.skills.length > 0;
     const hasAbout = portfolio.about.length > 0;
 
@@ -105,5 +130,32 @@ export async function PortfolioPage() {
                 <span>{portfolio.location}</span>
             </footer>
         </div>
+    );
+}
+
+function isPortfolioEmpty(portfolio: Portfolio): boolean {
+    return (
+        !portfolio.displayName.trim() &&
+        !portfolio.headline.trim() &&
+        !portfolio.heroSummary.trim() &&
+        !portfolio.location.trim() &&
+        portfolio.about.length === 0 &&
+        portfolio.skills.length === 0
+    );
+}
+
+interface PortfolioStateProps {
+    readonly title: string;
+    readonly description: string;
+}
+
+function PortfolioState({ title, description }: PortfolioStateProps) {
+    return (
+        <main className={`${styles.inner} ${styles.state}`} aria-labelledby="portfolio-state-title">
+            <div>
+                <h1 id="portfolio-state-title">{title}</h1>
+                <p>{description}</p>
+            </div>
+        </main>
     );
 }

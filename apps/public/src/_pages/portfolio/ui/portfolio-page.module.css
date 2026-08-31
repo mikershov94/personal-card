@@ -183,6 +183,40 @@
     font-size: 0.85rem;
 }
 
+.state {
+    display: grid;
+    min-height: 100vh;
+    place-items: center;
+    padding-block: var(--section-block-padding);
+    text-align: center;
+}
+
+.state > div {
+    max-width: 38rem;
+}
+
+.state h1 {
+    margin-top: 0;
+    font-size: clamp(2.5rem, 8vw, 5rem);
+    line-height: 1;
+}
+
+.state p {
+    color: var(--color-text-muted);
+    line-height: 1.65;
+}
+
+.retryButton {
+    min-height: 2.75rem;
+    margin-top: 1rem;
+    padding: 0.65rem 1rem;
+    border: 1px solid var(--color-text);
+    border-radius: var(--radius-pill);
+    background: var(--color-text);
+    color: var(--color-background);
+    cursor: pointer;
+}
+
 @media (min-width: 48rem) {
     .hero {
         grid-template-columns: minmax(0, 1.35fr) minmax(17rem, 0.65fr);
