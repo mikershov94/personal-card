@@ -1,22 +1,17 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { Portfolio } from '@/entities/portfolio';
+import type { Portfolio } from '../model/portfolio';
 
-const { getPortfolioMock, PortfolioNotFoundErrorMock } = vi.hoisted(() => {
-    class PortfolioNotFoundErrorMock extends Error {}
-
-    return {
-        getPortfolioMock: vi.fn<() => Promise<Portfolio>>(),
-        PortfolioNotFoundErrorMock,
-    };
-});
-
-vi.mock('@/entities/portfolio', () => ({
-    getPortfolio: getPortfolioMock,
-    PortfolioNotFoundError: PortfolioNotFoundErrorMock,
+const { getPortfolioMock } = vi.hoisted(() => ({
+    getPortfolioMock: vi.fn<() => Promise<Portfolio>>(),
 }));
 
+vi.mock('../api/get-portfolio', () => ({
+    getPortfolio: getPortfolioMock,
+}));
+
+import { PortfolioNotFoundError } from '../api/graphql/portfolio-errors';
 import { PortfolioPage } from './portfolio-page';
 
 const portfolio: Portfolio = {
@@ -27,6 +22,7 @@ const portfolio: Portfolio = {
     location: 'Иркутск',
     avatarUrl: '/images/profile/avatar.webp',
     skills: [{ name: 'TypeScript' }, { name: 'React' }],
+    experiences: [],
 };
 
 describe('Страница портфолио', () => {
@@ -71,7 +67,7 @@ describe('Страница портфолио', () => {
     });
 
     it('показывает ожидаемое состояние отсутствующего профиля', async () => {
-        getPortfolioMock.mockRejectedValue(new PortfolioNotFoundErrorMock());
+        getPortfolioMock.mockRejectedValue(new PortfolioNotFoundError());
 
         render(await PortfolioPage());
 
@@ -88,6 +84,7 @@ describe('Страница портфолио', () => {
             location: '',
             avatarUrl: '',
             skills: [],
+            experiences: [],
         });
 
         render(await PortfolioPage());

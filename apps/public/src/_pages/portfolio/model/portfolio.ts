@@ -1,6 +1,5 @@
-export interface PortfolioSkill {
-    readonly name: string;
-}
+import type { Experience } from '@/entities/experience';
+import type { Skill } from '@/entities/skill';
 
 export interface Portfolio {
     readonly displayName: string;
@@ -9,5 +8,6 @@ export interface Portfolio {
     readonly about: readonly string[];
     readonly location: string;
     readonly avatarUrl: string;
-    readonly skills: readonly PortfolioSkill[];
+    readonly skills: readonly Skill[];
+    readonly experiences: readonly Experience[];
 }

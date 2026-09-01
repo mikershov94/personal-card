@@ -1,4 +1,4 @@
-import { Portfolio } from '@/entities/portfolio';
+import type { Portfolio } from '../../model/portfolio';
 
 export function isPortfolioEmpty(portfolio: Portfolio): boolean {
     return (

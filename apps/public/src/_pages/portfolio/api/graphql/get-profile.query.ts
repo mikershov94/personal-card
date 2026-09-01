@@ -12,6 +12,16 @@ export const GET_PROFILE_QUERY = `
                     name
                 }
             }
+            experiences {
+                id
+                company
+                position
+                location
+                description
+                startedAt
+                endedAt
+                sortOrder
+            }
         }
     }
 `;

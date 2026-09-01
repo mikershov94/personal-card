@@ -1,6 +1,7 @@
-import { getPortfolio, type Portfolio, PortfolioNotFoundError } from '@/entities/portfolio';
-
+import { getPortfolio } from '../api/get-portfolio';
+import { PortfolioNotFoundError } from '../api/graphql/portfolio-errors';
 import { isPortfolioEmpty } from '../lib/is-portfolio-empty/is-portfolio-empty';
+import type { Portfolio } from '../model/portfolio';
 import { PortfolioAbout } from './portfolio-about/portfolio-about';
 import { PortfolioFooter } from './portfolio-footer/portfolio-footer';
 import { PortfolioHeader } from './portfolio-header/portfolio-header';
