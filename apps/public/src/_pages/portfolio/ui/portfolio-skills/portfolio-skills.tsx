@@ -1,10 +1,10 @@
-import type { PortfolioSkill } from '@/entities/portfolio';
+import type { Skill } from '@/entities/skill';
 import { Section } from '@/shared/ui';
 
 import styles from '../portfolio-page.module.css';
 
 interface PortfolioSkillsProps {
-    readonly skills: readonly PortfolioSkill[];
+    readonly skills: readonly Skill[];
 }
 
 export function PortfolioSkills({ skills }: PortfolioSkillsProps) {

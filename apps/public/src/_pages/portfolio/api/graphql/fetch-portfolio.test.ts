@@ -17,6 +17,7 @@ const profile = {
     location: 'Irkutsk',
     avatarUrl: 'https://example.com/avatar.jpg',
     skills: [{ sortOrder: 1, skill: { name: 'TypeScript' } }],
+    experiences: [],
 };
 
 function response(body: unknown, init?: ResponseInit): Response {

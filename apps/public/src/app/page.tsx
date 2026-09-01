@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 
-import { createPortfolioMetadata, PortfolioPage } from '@/_pages/portfolio';
-import { getPortfolio } from '@/entities/portfolio';
+import { createPortfolioMetadata, getPortfolio, PortfolioPage } from '@/_pages/portfolio';
 
 export async function generateMetadata(): Promise<Metadata> {
     try {

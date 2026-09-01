@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 
-import type { Portfolio } from '@/entities/portfolio';
+import type { Portfolio } from '../../model/portfolio';
 
 const fallbackTitle = 'Портфолио';
 const fallbackDescription = 'Публичный профиль разработчика.';

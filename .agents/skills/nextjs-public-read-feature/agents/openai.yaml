@@ -1,0 +1,4 @@
+interface:
+  display_name: "Next.js Public Read Feature"
+  short_description: "Read-only frontend-фичи по архитектуре проекта"
+  default_prompt: "Use $nextjs-public-read-feature to implement the next read-only public frontend feature in this project."

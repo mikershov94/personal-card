@@ -12,7 +12,11 @@
   handlers. Префикс `_` отличает FSD-слой от Next.js `app`.
 - `src/_pages` собирает законченные страницы из нижележащих слоёв. Его public API экспортируется
   через `index.ts`; `src/app` не импортирует внутренние файлы страницы напрямую.
-- `src/entities` хранит предметные read models, их преобразование и серверные API-сценарии.
+- `src/entities` хранит самостоятельные предметные read models и их преобразование. Entity slice
+  не импортирует соседний entity slice того же слоя.
+- Если публичный сценарий объединяет несколько самостоятельных entities, составной read model,
+  GraphQL query и server-only загрузчик принадлежат соответствующему slice в `src/_pages`. Page
+  mapper собирает aggregate через публичные API нижележащих entities.
 - `src/shared` содержит только переиспользуемые конфигурацию, GraphQL-механику, type guards и UI
   без знания о portfolio.
 - Slice импортирует другой slice только с нижележащего FSD-слоя. Внутренние файлы slice не
@@ -21,8 +25,8 @@
 ## Публичный API и внутренние импорты
 
 - Единственная публичная точка входа slice находится в его корневом `index.ts`. Внешние
-  потребители импортируют slice через alias и этот public API, например
-  `@/_pages/portfolio` или `@/entities/portfolio`.
+  потребители импортируют slice через alias и этот public API, например `@/_pages/portfolio`,
+  `@/entities/experience` или `@/entities/skill`.
 - Когда общий public API смешал бы server-only и client-safe модули, slice получает отдельный
   runtime-entrypoint, например `client.ts`. Client Component импортирует только client-entrypoint;
   корневой `index.ts` не реэкспортирует через себя server-only и client-safe графы одновременно.
@@ -68,6 +72,20 @@ Next.js page / metadata
 интерпретирует GraphQL errors и преобразует проверенный ответ в `Portfolio`; общий helper отвечает
 только за HTTP-запрос и GraphQL envelope. Ошибки контракта не маскируются демонстрационными
 данными.
+
+## Experience codepath
+
+- `_pages/portfolio` запрашивает опыт в составе единственного `getProfile` и передаёт каждую
+  запись в `entities/experience` для проверки контракта и формирования периода отображения.
+- Page mapper сохраняет порядок `experiences` из backend; frontend не выполняет повторную
+  предметную сортировку.
+- `PortfolioPage` показывает page-specific timeline между Skills и About и добавляет якорь
+  `#experience` только для непустой коллекции. Experience также считается содержимым профиля при
+  выборе empty state.
+- Timeline использует список, отдельный `article` и исходные ISO-даты в `<time>`. Nullable
+  `location` и `description` не создают пустую разметку.
+- Семантика и условия отображения покрываются component tests; responsive, zoom, keyboard
+  navigation, focus, contrast и горизонтальный overflow проверяются вручную в браузере.
 
 ## Локальная конфигурация
 

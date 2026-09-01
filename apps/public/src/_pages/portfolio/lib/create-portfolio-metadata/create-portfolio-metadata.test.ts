@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import type { Portfolio } from '@/entities/portfolio';
-
+import type { Portfolio } from '../../model/portfolio';
 import { createPortfolioMetadata } from './create-portfolio-metadata';
 
 const portfolio: Portfolio = {
@@ -12,6 +11,7 @@ const portfolio: Portfolio = {
     location: 'Иркутск',
     avatarUrl: '/images/profile/avatar.webp',
     skills: [],
+    experiences: [],
 };
 
 describe('Metadata публичного профиля', () => {

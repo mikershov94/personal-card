@@ -1,22 +1,17 @@
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { Portfolio } from '@/entities/portfolio';
+import type { Portfolio } from '../model/portfolio';
 
-const { getPortfolioMock, PortfolioNotFoundErrorMock } = vi.hoisted(() => {
-    class PortfolioNotFoundErrorMock extends Error {}
-
-    return {
-        getPortfolioMock: vi.fn<() => Promise<Portfolio>>(),
-        PortfolioNotFoundErrorMock,
-    };
-});
-
-vi.mock('@/entities/portfolio', () => ({
-    getPortfolio: getPortfolioMock,
-    PortfolioNotFoundError: PortfolioNotFoundErrorMock,
+const { getPortfolioMock } = vi.hoisted(() => ({
+    getPortfolioMock: vi.fn<() => Promise<Portfolio>>(),
 }));
 
+vi.mock('../api/get-portfolio', () => ({
+    getPortfolio: getPortfolioMock,
+}));
+
+import { PortfolioNotFoundError } from '../api/graphql/portfolio-errors';
 import { PortfolioPage } from './portfolio-page';
 
 const portfolio: Portfolio = {
@@ -27,11 +22,52 @@ const portfolio: Portfolio = {
     location: 'Иркутск',
     avatarUrl: '/images/profile/avatar.webp',
     skills: [{ name: 'TypeScript' }, { name: 'React' }],
+    experiences: [
+        {
+            id: 'current-experience',
+            company: 'Product team',
+            position: 'Fullstack Developer',
+            location: 'Иркутск',
+            description: 'Разрабатываю бизнес-сценарии от интерфейса до базы данных.',
+            startedAt: '2024-01-01T00:00:00.000Z',
+            endedAt: null,
+            sortOrder: 1,
+            period: '2024 — сейчас',
+        },
+        {
+            id: 'past-experience',
+            company: 'Digital products',
+            position: 'Frontend Developer',
+            location: null,
+            description: null,
+            startedAt: '2022-02-01T00:00:00.000Z',
+            endedAt: '2024-01-01T00:00:00.000Z',
+            sortOrder: 2,
+            period: '2022 — 2024',
+        },
+    ],
 };
 
 describe('Страница портфолио', () => {
     beforeEach(() => {
         getPortfolioMock.mockResolvedValue(portfolio);
+    });
+
+    it('сохраняет порядок и доступную структуру записей опыта', async () => {
+        render(await PortfolioPage());
+
+        const timeline = screen.getByRole('list', { name: 'Опыт работы' });
+        const entries = within(timeline).getAllByRole('article');
+
+        expect(entries).toHaveLength(2);
+        expect(entries[0]).toHaveAccessibleName('Fullstack Developer · Product team');
+        expect(entries[0]).toHaveTextContent('2024 — сейчас');
+        expect(entries[0].querySelectorAll('time')).toHaveLength(1);
+        expect(entries[1]).toHaveAccessibleName('Frontend Developer · Digital products');
+        expect(entries[1]).toHaveTextContent('2022 — 2024');
+        expect(entries[1].querySelectorAll('time')).toHaveLength(2);
+        expect(within(entries[1]).queryByText('Иркутск')).not.toBeInTheDocument();
+        expect(entries[1].querySelectorAll('p')).toHaveLength(0);
     });
 
     afterEach(() => {
@@ -54,24 +90,51 @@ describe('Страница портфолио', () => {
         ).toHaveAttribute('src', expect.stringContaining('avatar.webp'));
         expect(screen.getByRole('heading', { level: 2, name: 'Навыки' })).toBeVisible();
         expect(screen.getByRole('list', { name: 'Навыки' })).toHaveTextContent('TypeScriptReact');
+        expect(screen.getByRole('heading', { level: 2, name: 'Опыт' })).toBeVisible();
+        expect(screen.getByRole('link', { name: 'Опыт' })).toHaveAttribute('href', '#experience');
         expect(screen.getByRole('heading', { level: 2, name: 'Обо мне' })).toBeVisible();
         expect(screen.getByText(portfolio.about[0])).toBeVisible();
         expect(screen.getByRole('contentinfo')).toHaveTextContent(portfolio.location);
     });
 
     it('не показывает необязательные секции и ссылки на них без данных', async () => {
-        getPortfolioMock.mockResolvedValue({ ...portfolio, about: [], skills: [] });
+        getPortfolioMock.mockResolvedValue({
+            ...portfolio,
+            about: [],
+            skills: [],
+            experiences: [],
+        });
 
         render(await PortfolioPage());
 
         expect(screen.queryByRole('heading', { name: 'Навыки' })).not.toBeInTheDocument();
         expect(screen.queryByRole('heading', { name: 'Обо мне' })).not.toBeInTheDocument();
+        expect(screen.queryByRole('heading', { name: 'Опыт' })).not.toBeInTheDocument();
         expect(screen.queryByRole('link', { name: 'Навыки' })).not.toBeInTheDocument();
         expect(screen.queryByRole('link', { name: 'Обо мне' })).not.toBeInTheDocument();
+        expect(screen.queryByRole('link', { name: 'Опыт' })).not.toBeInTheDocument();
+    });
+
+    it('считает профиль с опытом заполненным', async () => {
+        getPortfolioMock.mockResolvedValue({
+            ...portfolio,
+            displayName: '',
+            headline: '',
+            heroSummary: '',
+            about: [],
+            location: '',
+            avatarUrl: '',
+            skills: [],
+        });
+
+        render(await PortfolioPage());
+
+        expect(screen.getByRole('heading', { name: 'Опыт' })).toBeVisible();
+        expect(screen.queryByText('Профиль пока не заполнен')).not.toBeInTheDocument();
     });
 
     it('показывает ожидаемое состояние отсутствующего профиля', async () => {
-        getPortfolioMock.mockRejectedValue(new PortfolioNotFoundErrorMock());
+        getPortfolioMock.mockRejectedValue(new PortfolioNotFoundError());
 
         render(await PortfolioPage());
 
@@ -88,6 +151,7 @@ describe('Страница портфолио', () => {
             location: '',
             avatarUrl: '',
             skills: [],
+            experiences: [],
         });
 
         render(await PortfolioPage());

@@ -1,14 +1,9 @@
+import { mapExperience } from '@/entities/experience';
+import { mapSkill } from '@/entities/skill';
 import { isRecord } from '@/shared/lib/typeguards';
 
 import { PortfolioContractError } from '../../api/graphql/portfolio-errors';
 import type { Portfolio } from '../portfolio';
-
-interface RawProfileSkill {
-    readonly sortOrder: number;
-    readonly skill: {
-        readonly name: string;
-    };
-}
 
 interface RawProfile {
     readonly displayName: string;
@@ -16,16 +11,8 @@ interface RawProfile {
     readonly summary: string;
     readonly location: string;
     readonly avatarUrl: string;
-    readonly skills: readonly RawProfileSkill[];
-}
-
-function isRawProfileSkill(value: unknown): value is RawProfileSkill {
-    return (
-        isRecord(value) &&
-        typeof value.sortOrder === 'number' &&
-        isRecord(value.skill) &&
-        typeof value.skill.name === 'string'
-    );
+    readonly skills: readonly unknown[];
+    readonly experiences: readonly unknown[];
 }
 
 function isRawProfile(value: unknown): value is RawProfile {
@@ -37,7 +24,7 @@ function isRawProfile(value: unknown): value is RawProfile {
         typeof value.location === 'string' &&
         typeof value.avatarUrl === 'string' &&
         Array.isArray(value.skills) &&
-        value.skills.every(isRawProfileSkill)
+        Array.isArray(value.experiences)
     );
 }
 
@@ -56,13 +43,18 @@ export function mapPortfolio(value: unknown): Portfolio {
 
     const [heroSummary = '', ...about] = splitSummary(value.summary);
 
-    return {
-        displayName: value.displayName,
-        headline: value.headline,
-        heroSummary,
-        about,
-        location: value.location,
-        avatarUrl: value.avatarUrl,
-        skills: value.skills.map(({ skill }) => ({ name: skill.name })),
-    };
+    try {
+        return {
+            displayName: value.displayName,
+            headline: value.headline,
+            heroSummary,
+            about,
+            location: value.location,
+            avatarUrl: value.avatarUrl,
+            skills: value.skills.map(mapSkill),
+            experiences: value.experiences.map(mapExperience),
+        };
+    } catch (cause) {
+        throw new PortfolioContractError({ cause });
+    }
 }

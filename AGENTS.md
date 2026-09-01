@@ -67,6 +67,8 @@
 
 - Для реализации или расширения предметной GraphQL-фичи backend использовать
   `$nestjs-graphql-feature` из `.agents/skills/nestjs-graphql-feature`.
+- Для реализации или расширения server-rendered read-only фичи в `apps/public` использовать
+  `$nextjs-public-read-feature` из `.agents/skills/nextjs-public-read-feature`.
 
 Если в ходе принятой фичи появилось устойчивое соглашение или существенный codepath, после
 завершения блока предложить обновление соответствующей заметки. `AGENTS.md` сохранять короткой

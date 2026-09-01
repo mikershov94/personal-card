@@ -1,7 +1,9 @@
-import { getPortfolio, type Portfolio, PortfolioNotFoundError } from '@/entities/portfolio';
-
+import { getPortfolio } from '../api/get-portfolio';
+import { PortfolioNotFoundError } from '../api/graphql/portfolio-errors';
 import { isPortfolioEmpty } from '../lib/is-portfolio-empty/is-portfolio-empty';
+import type { Portfolio } from '../model/portfolio';
 import { PortfolioAbout } from './portfolio-about/portfolio-about';
+import { PortfolioExperience } from './portfolio-experience/portfolio-experience';
 import { PortfolioFooter } from './portfolio-footer/portfolio-footer';
 import { PortfolioHeader } from './portfolio-header/portfolio-header';
 import { PortfolioHero } from './portfolio-hero/portfolio-hero';
@@ -37,6 +39,7 @@ export async function PortfolioPage() {
     }
 
     const hasSkills = portfolio.skills.length > 0;
+    const hasExperience = portfolio.experiences.length > 0;
     const hasAbout = portfolio.about.length > 0;
 
     return (
@@ -48,6 +51,7 @@ export async function PortfolioPage() {
             <PortfolioHeader
                 displayName={portfolio.displayName}
                 showSkillsLink={hasSkills}
+                showExperienceLink={hasExperience}
                 showAboutLink={hasAbout}
             />
 
@@ -61,6 +65,7 @@ export async function PortfolioPage() {
                 />
 
                 {hasSkills && <PortfolioSkills skills={portfolio.skills} />}
+                {hasExperience && <PortfolioExperience experiences={portfolio.experiences} />}
                 {hasAbout && <PortfolioAbout paragraphs={portfolio.about} />}
             </main>
 
