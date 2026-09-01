@@ -1,0 +1,32 @@
+.main {
+    display: grid;
+    min-height: 100vh;
+    place-items: center;
+    padding: var(--page-inline-padding);
+    text-align: center;
+}
+
+.main > div {
+    display: grid;
+    max-width: 34rem;
+    gap: 1.5rem;
+}
+
+.main h1,
+.main p {
+    margin: 0;
+}
+
+.main a {
+    color: var(--color-accent);
+    font-weight: 700;
+    text-underline-offset: 0.25em;
+}
+
+.code {
+    color: var(--color-text-muted);
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+}

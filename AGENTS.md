@@ -36,7 +36,7 @@
 - Предпочтительный подход — TDD: падающий тест, минимальная реализация, рефакторинг на зелёных
   тестах.
 - Названия `describe` и `it` пишутся на русском языке.
-- Для публичного сценария нужен минимум один happy path и один осмысленный negative path.
+- Для ключевого публичного сценария нужен минимум один happy path и один осмысленный negative path.
 - Unit-тесты изолируют текущий слой; e2e проходят через HTTP/GraphQL и отдельную PostgreSQL.
 - Перед PR должны проходить форматирование, ESLint, typecheck, unit-тесты, e2e и build.
 
@@ -58,6 +58,8 @@
 - [Тестирование](ai-docs/testing.md) — TDD, unit/e2e и команды проверок.
 - [Процесс разработки](ai-docs/development-workflow.md) — планы, ветки, коммиты, PR и
   рефакторинг.
+- [Public frontend](ai-docs/public-frontend.md) — FSD-границы, серверный read path и безопасная
+  on-demand ревалидация.
 - [Реализация backend-фич](ai-docs/feature-workflow.md) — последовательность слоёв и Definition
   of Done.
 
