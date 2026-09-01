@@ -22,7 +22,19 @@ const portfolio: Portfolio = {
     location: 'Иркутск',
     avatarUrl: '/images/profile/avatar.webp',
     skills: [{ name: 'TypeScript' }, { name: 'React' }],
-    experiences: [],
+    experiences: [
+        {
+            id: 'experience-id',
+            company: 'Product team',
+            position: 'Fullstack Developer',
+            location: 'Иркутск',
+            description: 'Разрабатываю бизнес-сценарии от интерфейса до базы данных.',
+            startedAt: '2024-01-01T00:00:00.000Z',
+            endedAt: null,
+            sortOrder: 1,
+            period: '2024 — сейчас',
+        },
+    ],
 };
 
 describe('Страница портфолио', () => {
@@ -50,20 +62,47 @@ describe('Страница портфолио', () => {
         ).toHaveAttribute('src', expect.stringContaining('avatar.webp'));
         expect(screen.getByRole('heading', { level: 2, name: 'Навыки' })).toBeVisible();
         expect(screen.getByRole('list', { name: 'Навыки' })).toHaveTextContent('TypeScriptReact');
+        expect(screen.getByRole('heading', { level: 2, name: 'Опыт' })).toBeVisible();
+        expect(screen.getByRole('link', { name: 'Опыт' })).toHaveAttribute('href', '#experience');
         expect(screen.getByRole('heading', { level: 2, name: 'Обо мне' })).toBeVisible();
         expect(screen.getByText(portfolio.about[0])).toBeVisible();
         expect(screen.getByRole('contentinfo')).toHaveTextContent(portfolio.location);
     });
 
     it('не показывает необязательные секции и ссылки на них без данных', async () => {
-        getPortfolioMock.mockResolvedValue({ ...portfolio, about: [], skills: [] });
+        getPortfolioMock.mockResolvedValue({
+            ...portfolio,
+            about: [],
+            skills: [],
+            experiences: [],
+        });
 
         render(await PortfolioPage());
 
         expect(screen.queryByRole('heading', { name: 'Навыки' })).not.toBeInTheDocument();
         expect(screen.queryByRole('heading', { name: 'Обо мне' })).not.toBeInTheDocument();
+        expect(screen.queryByRole('heading', { name: 'Опыт' })).not.toBeInTheDocument();
         expect(screen.queryByRole('link', { name: 'Навыки' })).not.toBeInTheDocument();
         expect(screen.queryByRole('link', { name: 'Обо мне' })).not.toBeInTheDocument();
+        expect(screen.queryByRole('link', { name: 'Опыт' })).not.toBeInTheDocument();
+    });
+
+    it('считает профиль с опытом заполненным', async () => {
+        getPortfolioMock.mockResolvedValue({
+            ...portfolio,
+            displayName: '',
+            headline: '',
+            heroSummary: '',
+            about: [],
+            location: '',
+            avatarUrl: '',
+            skills: [],
+        });
+
+        render(await PortfolioPage());
+
+        expect(screen.getByRole('heading', { name: 'Опыт' })).toBeVisible();
+        expect(screen.queryByText('Профиль пока не заполнен')).not.toBeInTheDocument();
     });
 
     it('показывает ожидаемое состояние отсутствующего профиля', async () => {
