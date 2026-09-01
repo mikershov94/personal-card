@@ -12,6 +12,7 @@ const portfolio: Portfolio = {
     avatarUrl: '/images/profile/avatar.webp',
     skills: [],
     experiences: [],
+    personalProjects: [],
 };
 
 describe('Metadata публичного профиля', () => {

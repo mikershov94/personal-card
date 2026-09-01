@@ -18,6 +18,7 @@ const profile = {
     avatarUrl: 'https://example.com/avatar.jpg',
     skills: [{ sortOrder: 1, skill: { name: 'TypeScript' } }],
     experiences: [],
+    projects: [],
 };
 
 function response(body: unknown, init?: ResponseInit): Response {
@@ -35,7 +36,11 @@ describe('Загрузка публичного профиля', () => {
             .mockResolvedValue(response({ data: { getProfile: profile } }));
 
         await expect(fetchPortfolio('http://localhost:3000/graphql', fetchMock)).resolves.toEqual(
-            expect.objectContaining({ displayName: 'Michael Ershov' }),
+            expect.objectContaining({
+                displayName: 'Michael Ershov',
+                experiences: [],
+                personalProjects: [],
+            }),
         );
         expect(fetchMock).toHaveBeenCalledWith('http://localhost:3000/graphql', {
             method: 'POST',

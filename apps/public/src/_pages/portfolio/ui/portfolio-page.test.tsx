@@ -33,6 +33,7 @@ const portfolio: Portfolio = {
             endedAt: null,
             sortOrder: 1,
             period: '2024 — сейчас',
+            projects: [],
         },
         {
             id: 'past-experience',
@@ -44,8 +45,10 @@ const portfolio: Portfolio = {
             endedAt: '2024-01-01T00:00:00.000Z',
             sortOrder: 2,
             period: '2022 — 2024',
+            projects: [],
         },
     ],
+    personalProjects: [],
 };
 
 describe('Страница портфолио', () => {
@@ -103,6 +106,7 @@ describe('Страница портфолио', () => {
             about: [],
             skills: [],
             experiences: [],
+            personalProjects: [],
         });
 
         render(await PortfolioPage());
@@ -152,6 +156,7 @@ describe('Страница портфолио', () => {
             avatarUrl: '',
             skills: [],
             experiences: [],
+            personalProjects: [],
         });
 
         render(await PortfolioPage());
