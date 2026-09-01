@@ -73,6 +73,20 @@ Next.js page / metadata
 только за HTTP-запрос и GraphQL envelope. Ошибки контракта не маскируются демонстрационными
 данными.
 
+## Experience codepath
+
+- `_pages/portfolio` запрашивает опыт в составе единственного `getProfile` и передаёт каждую
+  запись в `entities/experience` для проверки контракта и формирования периода отображения.
+- Page mapper сохраняет порядок `experiences` из backend; frontend не выполняет повторную
+  предметную сортировку.
+- `PortfolioPage` показывает page-specific timeline между Skills и About и добавляет якорь
+  `#experience` только для непустой коллекции. Experience также считается содержимым профиля при
+  выборе empty state.
+- Timeline использует список, отдельный `article` и исходные ISO-даты в `<time>`. Nullable
+  `location` и `description` не создают пустую разметку.
+- Семантика и условия отображения покрываются component tests; responsive, zoom, keyboard
+  navigation, focus, contrast и горизонтальный overflow проверяются вручную в браузере.
+
 ## Локальная конфигурация
 
 Public загружает environment variables из единого `.env` в корне монорепозитория. Для локального

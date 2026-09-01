@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { Portfolio } from '../model/portfolio';
@@ -24,7 +24,7 @@ const portfolio: Portfolio = {
     skills: [{ name: 'TypeScript' }, { name: 'React' }],
     experiences: [
         {
-            id: 'experience-id',
+            id: 'current-experience',
             company: 'Product team',
             position: 'Fullstack Developer',
             location: 'Иркутск',
@@ -34,12 +34,40 @@ const portfolio: Portfolio = {
             sortOrder: 1,
             period: '2024 — сейчас',
         },
+        {
+            id: 'past-experience',
+            company: 'Digital products',
+            position: 'Frontend Developer',
+            location: null,
+            description: null,
+            startedAt: '2022-02-01T00:00:00.000Z',
+            endedAt: '2024-01-01T00:00:00.000Z',
+            sortOrder: 2,
+            period: '2022 — 2024',
+        },
     ],
 };
 
 describe('Страница портфолио', () => {
     beforeEach(() => {
         getPortfolioMock.mockResolvedValue(portfolio);
+    });
+
+    it('сохраняет порядок и доступную структуру записей опыта', async () => {
+        render(await PortfolioPage());
+
+        const timeline = screen.getByRole('list', { name: 'Опыт работы' });
+        const entries = within(timeline).getAllByRole('article');
+
+        expect(entries).toHaveLength(2);
+        expect(entries[0]).toHaveAccessibleName('Fullstack Developer · Product team');
+        expect(entries[0]).toHaveTextContent('2024 — сейчас');
+        expect(entries[0].querySelectorAll('time')).toHaveLength(1);
+        expect(entries[1]).toHaveAccessibleName('Frontend Developer · Digital products');
+        expect(entries[1]).toHaveTextContent('2022 — 2024');
+        expect(entries[1].querySelectorAll('time')).toHaveLength(2);
+        expect(within(entries[1]).queryByText('Иркутск')).not.toBeInTheDocument();
+        expect(entries[1].querySelectorAll('p')).toHaveLength(0);
     });
 
     afterEach(() => {

@@ -15,9 +15,12 @@ export function PortfolioExperience({ experiences }: PortfolioExperienceProps) {
     return (
         <Section id="experience" header="Опыт">
             <ul className={styles.timeline} aria-label="Опыт работы">
-                {experiences.map((experience) => (
+                {experiences.map((experience, index) => (
                     <li className={styles.timelineEntry} key={experience.id}>
-                        <article className={styles.experience}>
+                        <article
+                            className={styles.experience}
+                            aria-labelledby={`experience-${index}-title`}
+                        >
                             <div className={styles.experiencePeriod} aria-label={experience.period}>
                                 <time dateTime={experience.startedAt}>
                                     {getYear(experience.startedAt)}
@@ -33,7 +36,7 @@ export function PortfolioExperience({ experiences }: PortfolioExperienceProps) {
                             </div>
 
                             <div className={styles.experienceContent}>
-                                <h3>
+                                <h3 id={`experience-${index}-title`}>
                                     {experience.position} · {experience.company}
                                 </h3>
                                 {experience.location && (
