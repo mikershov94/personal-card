@@ -3,8 +3,10 @@
 import { useActionState, useEffect, useRef } from 'react';
 
 import { sendInquiry } from '../api/send-inquiry.action';
-import type { InquiryFieldErrors, InquiryFormValues } from '../model/inquiry';
+import type { InquiryFormValues } from '../model/inquiry';
 import { INITIAL_INQUIRY_ACTION_STATE } from '../model/inquiry-form-state';
+import { FormField } from './form-field/form-field';
+import { FormResult } from './form-result/form-result';
 import styles from './inquiry-form.module.css';
 
 const EMPTY_VALUES: InquiryFormValues = { name: '', email: '', company: '', message: '' };
@@ -20,12 +22,15 @@ export function InquiryForm() {
     const fieldErrors = state.status === 'validation-error' ? state.fieldErrors : {};
 
     useEffect(() => {
+        if (state.status === 'idle') {
+            return;
+        }
+
         if (state.status === 'success') {
             formRef.current?.reset();
-            resultRef.current?.focus();
-        } else if (state.status === 'validation-error' || state.status === 'submission-error') {
-            resultRef.current?.focus();
         }
+
+        resultRef.current?.focus();
     }, [state]);
 
     return (
@@ -119,42 +124,5 @@ export function InquiryForm() {
                 <p aria-live="polite">{isPending ? 'Сообщение отправляется.' : ''}</p>
             </div>
         </form>
-    );
-}
-
-interface FormFieldProps {
-    readonly label: string;
-    readonly name: keyof InquiryFieldErrors;
-    readonly error?: string;
-    readonly wide?: boolean;
-    readonly children: React.ReactNode;
-}
-
-function FormField({ label, name, error, wide = false, children }: FormFieldProps) {
-    return (
-        <div className={`${styles.field} ${wide ? styles.wide : ''}`}>
-            <label htmlFor={`inquiry-${name}`}>{label}</label>
-            {children}
-            {error && (
-                <p className={styles.fieldError} id={`inquiry-${name}-error`}>
-                    {error}
-                </p>
-            )}
-        </div>
-    );
-}
-
-interface FormResultProps extends React.HTMLAttributes<HTMLDivElement> {
-    readonly tone: 'error' | 'success';
-    readonly resultRef: React.Ref<HTMLDivElement>;
-}
-
-function FormResult({ tone, resultRef, className, ...props }: FormResultProps) {
-    return (
-        <div
-            ref={resultRef}
-            className={`${styles.result} ${tone === 'error' ? styles.error : styles.success} ${className ?? ''}`}
-            {...props}
-        />
     );
 }
