@@ -515,10 +515,12 @@ On-demand ISR, Route Handler и Server Action требуют работающи�
 pnpm format:check:public
 pnpm lint:public
 pnpm typecheck:public
-pnpm build:public
+pnpm test:public
+pnpm smoke:public
 ```
 
-После появления frontend-тестов они добавляются в `public-checks` отдельным согласованным блоком.
+`public-checks` выполняет frontend-тесты и production smoke-check с локальным GraphQL contract
+stub. Smoke-check включает `next build`, запуск через `next start` и проверку on-demand ISR.
 
 ## Стратегия веток и этапы реализации
 
