@@ -39,7 +39,17 @@
 }
 
 .location {
-    margin-bottom: 0;
+    margin-bottom: 1.5rem;
+}
+
+.contactLink {
+    display: inline-flex;
+    min-height: 2.75rem;
+    align-items: center;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    padding: 0.65rem 1rem;
+    text-decoration: none;
 }
 
 .portrait {

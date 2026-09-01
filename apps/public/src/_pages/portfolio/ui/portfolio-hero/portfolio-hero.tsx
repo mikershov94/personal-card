@@ -25,6 +25,9 @@ export function PortfolioHero({
                 <h1 id="profile-title">{headline}</h1>
                 <p className={styles.heroSummary}>{heroSummary}</p>
                 <p className={styles.location}>{location}</p>
+                <a className={styles.contactLink} href="#contact">
+                    Написать мне
+                </a>
             </div>
 
             <div className={styles.portrait}>

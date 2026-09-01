@@ -25,14 +25,15 @@ export function PortfolioHeader({
                 <span>{displayName}</span>
             </a>
 
-            {(showSkillsLink || showExperienceLink || showProjectsLink || showAboutLink) && (
-                <nav className={styles.navigation} aria-label="Основная навигация">
-                    {showSkillsLink && <a href="#skills">Навыки</a>}
-                    {showExperienceLink && <a href="#experience">Опыт</a>}
-                    {showProjectsLink && <a href="#projects">Проекты</a>}
-                    {showAboutLink && <a href="#about">Обо мне</a>}
-                </nav>
-            )}
+            <nav className={styles.navigation} aria-label="Основная навигация">
+                {showSkillsLink && <a href="#skills">Навыки</a>}
+                {showExperienceLink && <a href="#experience">Опыт</a>}
+                {showProjectsLink && <a href="#projects">Проекты</a>}
+                {showAboutLink && <a href="#about">Обо мне</a>}
+                <a className={styles.contactLink} href="#contact">
+                    Связаться
+                </a>
+            </nav>
         </header>
     );
 }

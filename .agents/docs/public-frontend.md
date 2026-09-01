@@ -77,6 +77,32 @@ Next.js page / metadata
 только за HTTP-запрос и GraphQL envelope. Ошибки контракта не маскируются демонстрационными
 данными.
 
+## Inquiry codepath
+
+Публичная форма обращения сохраняет серверную границу:
+
+```text
+PortfolioPage -> PortfolioContact -> InquiryForm (Client Component)
+  -> sendInquiry (Server Action) -> submitInquiry -> createInquiry GraphQL mutation
+```
+
+- `features/send-inquiry/client.ts` экспортирует только client-safe UI. Server Action, server env и
+  GraphQL transport не проходят через этот entrypoint в клиентский граф.
+- Server Action извлекает из `FormData` только известные поля. Общая Zod-схема повторно проверяет
+  недоверенные данные и нормализует пустой `company` как отсутствие необязательного значения.
+- Validation errors возвращаются как ошибки конкретных полей. Ожидаемые network, HTTP, GraphQL и
+  contract errors преобразуются в безопасное submission-состояние без сообщения backend.
+- `useActionState` управляет validation, submission, success и pending-состояниями. Значения формы
+  сохраняются после ошибки и очищаются только после успешной отправки; итоговое состояние получает
+  фокус и объявляется доступным live region.
+- Mutation выполняется только Server Action, не инвалидирует tag `portfolio`, не вызывает
+  `revalidateTag` и не участвует в ISR.
+
+Автоматические проверки покрывают validation contract, GraphQL variables и response contract,
+ошибки transport/API, Server Action и доступную композицию формы. Перед deployment вручную
+проверяются реальная отправка, повтор после ошибки, keyboard/focus flow, responsive layout, zoom
+200% и отсутствие горизонтального overflow.
+
 ## Experience codepath
 
 - `_pages/portfolio` запрашивает опыт в составе единственного `getProfile` и передаёт каждую

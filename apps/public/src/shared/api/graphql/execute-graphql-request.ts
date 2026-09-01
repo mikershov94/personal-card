@@ -10,6 +10,7 @@ export interface GraphqlRequestErrorFactories {
 export async function executeGraphqlRequest(
     graphqlApiUrl: string,
     query: string,
+    variables: Readonly<Record<string, unknown>> | undefined,
     errorFactories: GraphqlRequestErrorFactories,
     fetchImplementation: typeof fetch = fetch,
 ): Promise<GraphqlResponse> {
@@ -19,7 +20,7 @@ export async function executeGraphqlRequest(
         response = await fetchImplementation(graphqlApiUrl, {
             method: 'POST',
             headers: { 'content-type': 'application/json' },
-            body: JSON.stringify({ query }),
+            body: JSON.stringify({ query, ...(variables === undefined ? {} : { variables }) }),
         });
     } catch (error: unknown) {
         throw errorFactories.createNetworkError(error);

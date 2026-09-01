@@ -29,6 +29,7 @@ export async function fetchPortfolio(
     const payload = await executeGraphqlRequest(
         graphqlApiUrl,
         GET_PROFILE_QUERY,
+        undefined,
         portfolioRequestErrorFactories,
         fetchImplementation,
     );

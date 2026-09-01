@@ -21,6 +21,7 @@ describe('Выполнение GraphQL-запроса', () => {
             executeGraphqlRequest(
                 'http://localhost/graphql',
                 'query GetProfile { getProfile { id } }',
+                { input: { name: 'Michael' } },
                 errorFactories,
                 fetchMock,
             ),
@@ -28,7 +29,10 @@ describe('Выполнение GraphQL-запроса', () => {
         expect(fetchMock).toHaveBeenCalledWith('http://localhost/graphql', {
             method: 'POST',
             headers: { 'content-type': 'application/json' },
-            body: JSON.stringify({ query: 'query GetProfile { getProfile { id } }' }),
+            body: JSON.stringify({
+                query: 'query GetProfile { getProfile { id } }',
+                variables: { input: { name: 'Michael' } },
+            }),
         });
     });
 
@@ -43,6 +47,7 @@ describe('Выполнение GraphQL-запроса', () => {
             executeGraphqlRequest(
                 'http://localhost/graphql',
                 'query Test { test }',
+                undefined,
                 errorFactories,
                 networkFetch,
             ),
@@ -51,6 +56,7 @@ describe('Выполнение GraphQL-запроса', () => {
             executeGraphqlRequest(
                 'http://localhost/graphql',
                 'query Test { test }',
+                undefined,
                 errorFactories,
                 httpFetch,
             ),
@@ -71,6 +77,7 @@ describe('Выполнение GraphQL-запроса', () => {
             executeGraphqlRequest(
                 'http://localhost/graphql',
                 'query Test { test }',
+                undefined,
                 errorFactories,
                 invalidJsonFetch,
             ),
@@ -79,6 +86,7 @@ describe('Выполнение GraphQL-запроса', () => {
             executeGraphqlRequest(
                 'http://localhost/graphql',
                 'query Test { test }',
+                undefined,
                 errorFactories,
                 invalidEnvelopeFetch,
             ),
