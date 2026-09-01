@@ -153,6 +153,8 @@ GraphQL Resolver -> Application Service -> Repository -> PrismaService -> Postgr
   `apps/api/fixtures/<domain>`.
 - Типы фикстур и сами данные хранятся в отдельных файлах.
 - Исполняемая логика заполнения БД размещается в `apps/api/scripts`, отдельно от данных и `src`.
+- Seed entrypoint регистрируется через `migrations.seed` в `apps/api/prisma.config.ts` и
+  запускается канонической командой Prisma `prisma db seed`.
 - Детерминированный Portfolio seed заменяет только локальные Portfolio-данные в одной транзакции;
   его нельзя направлять на e2e или production-базу.
 
