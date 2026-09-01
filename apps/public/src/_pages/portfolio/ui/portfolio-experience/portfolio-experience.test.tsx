@@ -1,11 +1,10 @@
 import { cleanup, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import type { Experience } from '@/entities/experience';
-
+import type { PortfolioExperience as PortfolioExperienceModel } from '../../model/portfolio';
 import { PortfolioExperience } from './portfolio-experience';
 
-const experiences: readonly Experience[] = [
+const experiences: readonly PortfolioExperienceModel[] = [
     {
         id: 'current-experience',
         company: 'Product team',
@@ -16,6 +15,18 @@ const experiences: readonly Experience[] = [
         endedAt: null,
         sortOrder: 1,
         period: '2024 — сейчас',
+        projects: [
+            {
+                id: 'work-project',
+                experienceId: 'current-experience',
+                title: 'Платформа управления',
+                description: 'Внутренняя платформа.',
+                url: null,
+                repositoryUrl: 'https://github.com/example/work',
+                sortOrder: 1,
+                skills: [],
+            },
+        ],
     },
     {
         id: 'past-experience',
@@ -27,6 +38,7 @@ const experiences: readonly Experience[] = [
         endedAt: '2024-01-01T00:00:00.000Z',
         sortOrder: 2,
         period: '2022 — 2024',
+        projects: [],
     },
 ];
 
@@ -39,7 +51,7 @@ describe('Секция опыта', () => {
         const { container } = render(<PortfolioExperience experiences={experiences} />);
 
         const timeline = screen.getByRole('list', { name: 'Опыт работы' });
-        const entries = within(timeline).getAllByRole('article');
+        const entries = within(timeline).getAllByRole('article', { name: /Developer ·/u });
 
         expect(entries).toHaveLength(2);
         expect(
@@ -69,5 +81,26 @@ describe('Секция опыта', () => {
         ).toBeVisible();
         expect(entry.querySelectorAll('time')).toHaveLength(2);
         expect(entry.querySelectorAll('p')).toHaveLength(0);
+        expect(within(entry).queryByRole('list')).not.toBeInTheDocument();
+    });
+
+    it('показывает рабочие проекты без пустых ссылок и списка навыков', () => {
+        render(<PortfolioExperience experiences={[experiences[0]]} />);
+
+        const experience = screen.getByRole('article', {
+            name: 'Fullstack Developer · Product team',
+        });
+        const project = within(experience).getByRole('article', {
+            name: 'Платформа управления',
+        });
+
+        expect(
+            within(project).getByRole('heading', { name: 'Платформа управления' }),
+        ).toBeVisible();
+        expect(within(project).queryByRole('link', { name: /Демо/u })).not.toBeInTheDocument();
+        expect(
+            within(project).getByRole('link', { name: 'Репозиторий: Платформа управления' }),
+        ).toHaveAttribute('href', 'https://github.com/example/work');
+        expect(within(project).queryByRole('list')).not.toBeInTheDocument();
     });
 });

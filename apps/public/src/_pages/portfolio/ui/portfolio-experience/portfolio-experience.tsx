@@ -1,10 +1,11 @@
-import type { Experience } from '@/entities/experience';
 import { Section } from '@/shared/ui';
 
+import type { PortfolioExperience as PortfolioExperienceModel } from '../../model/portfolio';
 import styles from '../portfolio-page.module.css';
+import { PortfolioProject } from '../portfolio-project/portfolio-project';
 
 interface PortfolioExperienceProps {
-    readonly experiences: readonly Experience[];
+    readonly experiences: readonly PortfolioExperienceModel[];
 }
 
 function getYear(isoDate: string): string {
@@ -48,6 +49,21 @@ export function PortfolioExperience({ experiences }: PortfolioExperienceProps) {
                                     <p className={styles.experienceDescription}>
                                         {experience.description}
                                     </p>
+                                )}
+                                {experience.projects.length > 0 && (
+                                    <ul
+                                        className={styles.workProjects}
+                                        aria-label={`Проекты: ${experience.position} · ${experience.company}`}
+                                    >
+                                        {experience.projects.map((project) => (
+                                            <li key={project.id}>
+                                                <PortfolioProject
+                                                    project={project}
+                                                    variant="compact"
+                                                />
+                                            </li>
+                                        ))}
+                                    </ul>
                                 )}
                             </div>
                         </article>

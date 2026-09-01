@@ -8,6 +8,7 @@ export function isPortfolioEmpty(portfolio: Portfolio): boolean {
         !portfolio.location.trim() &&
         portfolio.about.length === 0 &&
         portfolio.skills.length === 0 &&
-        portfolio.experiences.length === 0
+        portfolio.experiences.length === 0 &&
+        portfolio.personalProjects.length === 0
     );
 }

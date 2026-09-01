@@ -4,6 +4,7 @@ interface PortfolioHeaderProps {
     readonly displayName: string;
     readonly showSkillsLink: boolean;
     readonly showExperienceLink: boolean;
+    readonly showProjectsLink: boolean;
     readonly showAboutLink: boolean;
 }
 
@@ -11,6 +12,7 @@ export function PortfolioHeader({
     displayName,
     showSkillsLink,
     showExperienceLink,
+    showProjectsLink,
     showAboutLink,
 }: PortfolioHeaderProps) {
     return (
@@ -22,10 +24,11 @@ export function PortfolioHeader({
                 <span>{displayName}</span>
             </a>
 
-            {(showSkillsLink || showExperienceLink || showAboutLink) && (
+            {(showSkillsLink || showExperienceLink || showProjectsLink || showAboutLink) && (
                 <nav className={styles.navigation} aria-label="Основная навигация">
                     {showSkillsLink && <a href="#skills">Навыки</a>}
                     {showExperienceLink && <a href="#experience">Опыт</a>}
+                    {showProjectsLink && <a href="#projects">Проекты</a>}
                     {showAboutLink && <a href="#about">Обо мне</a>}
                 </nav>
             )}
