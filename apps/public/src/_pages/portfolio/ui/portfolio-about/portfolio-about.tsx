@@ -1,6 +1,6 @@
 import { Section } from '@/shared/ui';
 
-import styles from '../portfolio-page.module.css';
+import styles from './portfolio-about.module.css';
 
 interface PortfolioAboutProps {
     readonly paragraphs: readonly string[];

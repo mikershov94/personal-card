@@ -1,8 +1,8 @@
 import { Section } from '@/shared/ui';
 
 import type { PortfolioExperience as PortfolioExperienceModel } from '../../model/portfolio';
-import styles from '../portfolio-page.module.css';
 import { PortfolioProject } from '../portfolio-project/portfolio-project';
+import styles from './portfolio-experience.module.css';
 
 interface PortfolioExperienceProps {
     readonly experiences: readonly PortfolioExperienceModel[];

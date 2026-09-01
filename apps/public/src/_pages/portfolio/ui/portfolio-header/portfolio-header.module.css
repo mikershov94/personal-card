@@ -1,0 +1,55 @@
+.header {
+    display: flex;
+    min-height: 4.5rem;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding-block: 0.75rem;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.brandMark {
+    display: grid;
+    width: 2rem;
+    height: 2rem;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--color-accent);
+    color: var(--color-accent-text);
+    font-family: var(--font-serif), serif;
+}
+
+.navigation {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: clamp(0.8rem, 3vw, 1.4rem);
+}
+
+.navigation a {
+    min-height: 2.75rem;
+    align-content: center;
+    color: var(--color-text-muted);
+    text-decoration: none;
+}
+
+.navigation a:hover {
+    color: var(--color-text);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .navigation a {
+        transition-duration: var(--transition-duration);
+        transition-property: color;
+        transition-timing-function: ease;
+    }
+}

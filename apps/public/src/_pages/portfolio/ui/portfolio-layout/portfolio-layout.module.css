@@ -1,0 +1,4 @@
+.inner {
+    width: min(calc(100% - (2 * var(--page-inline-padding))), var(--page-max-width));
+    margin-inline: auto;
+}

@@ -1,4 +1,5 @@
-import styles from '../portfolio-page.module.css';
+import layoutStyles from '../portfolio-layout/portfolio-layout.module.css';
+import styles from './portfolio-header.module.css';
 
 interface PortfolioHeaderProps {
     readonly displayName: string;
@@ -16,7 +17,7 @@ export function PortfolioHeader({
     showAboutLink,
 }: PortfolioHeaderProps) {
     return (
-        <header className={`${styles.inner} ${styles.header}`}>
+        <header className={`${layoutStyles.inner} ${styles.header}`}>
             <a className={styles.brand} href="#content" aria-label={`${displayName} — начало`}>
                 <span className={styles.brandMark} aria-hidden="true">
                     {displayName.slice(0, 1)}

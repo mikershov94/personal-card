@@ -1,15 +1,19 @@
 import type { Project } from '@/entities/project';
 
-import styles from '../portfolio-page.module.css';
+import styles from './portfolio-project.module.css';
 
 interface PortfolioProjectProps {
     readonly project: Project;
     readonly variant: 'compact' | 'card';
+    readonly alternate?: boolean;
 }
 
-export function PortfolioProject({ project, variant }: PortfolioProjectProps) {
+export function PortfolioProject({ project, variant, alternate = false }: PortfolioProjectProps) {
     const titleId = `project-${project.id}-title`;
-    const className = variant === 'card' ? styles.projectCard : styles.workProject;
+    const className =
+        variant === 'card'
+            ? `${styles.projectCard} ${alternate ? styles.projectCardAlternate : ''}`
+            : styles.workProject;
     const Heading = variant === 'card' ? 'h3' : 'h4';
     const hasActions = Boolean(project.url || project.repositoryUrl);
 

@@ -1,6 +1,7 @@
 'use client';
 
-import styles from '../portfolio-page.module.css';
+import layoutStyles from '../portfolio-layout/portfolio-layout.module.css';
+import styles from './portfolio-error.module.css';
 
 interface PortfolioErrorProps {
     readonly reset: () => void;
@@ -8,7 +9,10 @@ interface PortfolioErrorProps {
 
 export function PortfolioError({ reset }: PortfolioErrorProps) {
     return (
-        <main className={`${styles.inner} ${styles.state}`} aria-labelledby="portfolio-error-title">
+        <main
+            className={`${layoutStyles.inner} ${styles.state}`}
+            aria-labelledby="portfolio-error-title"
+        >
             <div>
                 <h1 id="portfolio-error-title">Не удалось загрузить портфолио</h1>
                 <p>Произошла системная ошибка. Попробуйте загрузить страницу ещё раз.</p>
