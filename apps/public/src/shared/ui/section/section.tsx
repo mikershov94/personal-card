@@ -1,24 +1,24 @@
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 import styles from './section.module.css';
 
 interface SectionProps {
-    id: string;
-    header: string;
-    children: ReactNode;
+    readonly id: string;
+    readonly header: string;
+    readonly children: ReactNode;
 }
 
-export function Section(props: SectionProps) {
-    const { id, header, children } = props;
+export function Section({ id, header, children }: SectionProps) {
+    const headingId = `${id}-title`;
 
     return (
         <section
             className={`${styles.inner} ${styles.section}`}
             id={id}
-            aria-labelledby="about-title"
+            aria-labelledby={headingId}
         >
             <div className={styles.sectionHeading}>
-                <h2 id="about-title">{header}</h2>
+                <h2 id={headingId}>{header}</h2>
             </div>
             {children}
         </section>

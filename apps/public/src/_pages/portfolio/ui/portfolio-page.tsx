@@ -1,9 +1,9 @@
 import Image from 'next/image';
 
 import { getPortfolio, type Portfolio, PortfolioNotFoundError } from '@/entities/portfolio';
+import { Section } from '@/shared/ui';
 
 import styles from './portfolio-page.module.css';
-import { Section } from '@/shared/ui';
 
 export async function PortfolioPage() {
     let portfolio: Portfolio;

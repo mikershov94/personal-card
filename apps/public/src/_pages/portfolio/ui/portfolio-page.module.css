@@ -76,8 +76,7 @@
 }
 
 .displayName,
-.location,
-.sectionIndex {
+.location {
     color: var(--color-text-muted);
     font-size: 0.78rem;
     font-weight: 500;
@@ -206,10 +205,6 @@
 
     .portrait {
         min-height: 25rem;
-    }
-
-    .sectionHeading {
-        grid-template-columns: 6rem minmax(0, 1fr);
     }
 
     .skills,
