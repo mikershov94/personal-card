@@ -1,6 +1,6 @@
 'use client';
 
-import styles from './portfolio-page.module.css';
+import styles from './../portfolio-page.module.css';
 
 interface PortfolioErrorProps {
     readonly reset: () => void;
