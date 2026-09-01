@@ -76,8 +76,7 @@
 }
 
 .displayName,
-.location,
-.sectionIndex {
+.location {
     color: var(--color-text-muted);
     font-size: 0.78rem;
     font-weight: 500;
@@ -125,24 +124,6 @@
 
 .portraitImage {
     object-fit: cover;
-}
-
-.section {
-    padding-block: var(--section-block-padding);
-    border-top: 1px solid var(--color-border);
-}
-
-.sectionHeading {
-    display: grid;
-    grid-template-columns: 3.5rem minmax(0, 1fr);
-    gap: 1rem;
-    margin-bottom: clamp(2.5rem, 6vw, 4.5rem);
-}
-
-.section h2 {
-    margin-bottom: 0;
-    font-size: clamp(2rem, 7vw, 3.8rem);
-    line-height: 1.04;
 }
 
 .skills {
@@ -224,10 +205,6 @@
 
     .portrait {
         min-height: 25rem;
-    }
-
-    .sectionHeading {
-        grid-template-columns: 6rem minmax(0, 1fr);
     }
 
     .skills,

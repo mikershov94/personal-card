@@ -1,6 +1,6 @@
 'use client';
 
-import { PortfolioError } from '@/_pages/portfolio/ui';
+import { PortfolioError } from '@/_pages/portfolio/client';
 
 interface GlobalErrorProps {
     readonly reset: () => void;
