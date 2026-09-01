@@ -1,4 +1,5 @@
 import { mapExperience } from '@/entities/experience';
+import { mapProject } from '@/entities/project';
 import { mapSkill } from '@/entities/skill';
 import { isRecord } from '@/shared/lib/typeguards';
 
@@ -13,6 +14,7 @@ interface RawProfile {
     readonly avatarUrl: string;
     readonly skills: readonly unknown[];
     readonly experiences: readonly unknown[];
+    readonly projects: readonly unknown[];
 }
 
 function isRawProfile(value: unknown): value is RawProfile {
@@ -24,7 +26,8 @@ function isRawProfile(value: unknown): value is RawProfile {
         typeof value.location === 'string' &&
         typeof value.avatarUrl === 'string' &&
         Array.isArray(value.skills) &&
-        Array.isArray(value.experiences)
+        Array.isArray(value.experiences) &&
+        Array.isArray(value.projects)
     );
 }
 
@@ -52,7 +55,21 @@ export function mapPortfolio(value: unknown): Portfolio {
             location: value.location,
             avatarUrl: value.avatarUrl,
             skills: value.skills.map(mapSkill),
-            experiences: value.experiences.map(mapExperience),
+            experiences: value.experiences.map((experience) => {
+                if (!isRecord(experience) || !Array.isArray(experience.projects)) {
+                    throw new TypeError('The experience projects have an invalid contract.');
+                }
+
+                const mappedExperience = mapExperience(experience);
+
+                return {
+                    ...mappedExperience,
+                    projects: experience.projects.map((project) =>
+                        mapProject(project, mappedExperience.id),
+                    ),
+                };
+            }),
+            personalProjects: value.projects.map((project) => mapProject(project, null)),
         };
     } catch (cause) {
         throw new PortfolioContractError({ cause });

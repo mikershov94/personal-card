@@ -23,6 +23,18 @@ const rawProfile = {
             startedAt: '2024-01-01T00:00:00.000Z',
             endedAt: null,
             sortOrder: 1,
+            projects: [
+                {
+                    id: 'work-project',
+                    experienceId: 'current',
+                    title: 'Work project',
+                    description: 'Рабочий проект.',
+                    url: 'https://example.com/work',
+                    repositoryUrl: null,
+                    sortOrder: 2,
+                    skills: [{ sortOrder: 1, skill: { name: 'GraphQL' } }],
+                },
+            ],
         },
         {
             id: 'previous',
@@ -33,6 +45,32 @@ const rawProfile = {
             startedAt: '2021-04-01T00:00:00.000Z',
             endedAt: '2023-09-30T00:00:00.000Z',
             sortOrder: 2,
+            projects: [],
+        },
+    ],
+    projects: [
+        {
+            id: 'second-personal-project',
+            experienceId: null,
+            title: 'Second personal project',
+            description: 'Второй личный проект.',
+            url: null,
+            repositoryUrl: null,
+            sortOrder: 2,
+            skills: [],
+        },
+        {
+            id: 'first-personal-project',
+            experienceId: null,
+            title: 'First personal project',
+            description: 'Первый личный проект.',
+            url: null,
+            repositoryUrl: 'https://github.com/example/project',
+            sortOrder: 1,
+            skills: [
+                { sortOrder: 2, skill: { name: 'React' } },
+                { sortOrder: 1, skill: { name: 'TypeScript' } },
+            ],
         },
     ],
 };
@@ -51,10 +89,23 @@ describe('Преобразование публичного профиля', () 
                 {
                     ...rawProfile.experiences[0],
                     period: '2024 — сейчас',
+                    projects: [
+                        {
+                            ...rawProfile.experiences[0].projects[0],
+                            skills: [{ name: 'GraphQL' }],
+                        },
+                    ],
                 },
                 {
                     ...rawProfile.experiences[1],
                     period: '2021 — 2023',
+                },
+            ],
+            personalProjects: [
+                { ...rawProfile.projects[0], skills: [] },
+                {
+                    ...rawProfile.projects[1],
+                    skills: [{ name: 'React' }, { name: 'TypeScript' }],
                 },
             ],
         });
@@ -82,6 +133,28 @@ describe('Преобразование публичного профиля', () 
             mapPortfolio({
                 ...rawProfile,
                 experiences: [{ ...rawProfile.experiences[0], startedAt: '2024-01-01' }],
+            }),
+        ).toThrow(PortfolioContractError);
+    });
+
+    it('отклоняет проект, помещённый в несогласованную категорию', () => {
+        expect(() =>
+            mapPortfolio({
+                ...rawProfile,
+                projects: [{ ...rawProfile.projects[0], experienceId: 'current' }],
+            }),
+        ).toThrow(PortfolioContractError);
+        expect(() =>
+            mapPortfolio({
+                ...rawProfile,
+                experiences: [
+                    {
+                        ...rawProfile.experiences[0],
+                        projects: [
+                            { ...rawProfile.experiences[0].projects[0], experienceId: null },
+                        ],
+                    },
+                ],
             }),
         ).toThrow(PortfolioContractError);
     });

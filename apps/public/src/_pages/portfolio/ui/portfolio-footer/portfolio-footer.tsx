@@ -1,4 +1,5 @@
-import styles from '../portfolio-page.module.css';
+import layoutStyles from '../portfolio-layout/portfolio-layout.module.css';
+import styles from './portfolio-footer.module.css';
 
 interface PortfolioFooterProps {
     readonly displayName: string;
@@ -7,7 +8,7 @@ interface PortfolioFooterProps {
 
 export function PortfolioFooter({ displayName, location }: PortfolioFooterProps) {
     return (
-        <footer className={`${styles.inner} ${styles.footer}`}>
+        <footer className={`${layoutStyles.inner} ${styles.footer}`}>
             <span>{displayName}</span>
             <span>{location}</span>
         </footer>

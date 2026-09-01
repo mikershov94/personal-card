@@ -8,6 +8,7 @@ import { PortfolioFooter } from './portfolio-footer/portfolio-footer';
 import { PortfolioHeader } from './portfolio-header/portfolio-header';
 import { PortfolioHero } from './portfolio-hero/portfolio-hero';
 import styles from './portfolio-page.module.css';
+import { PortfolioProjects } from './portfolio-projects/portfolio-projects';
 import { PortfolioSkills } from './portfolio-skills/portfolio-skills';
 import { PortfolioState } from './portfolio-state/portfolio-state';
 
@@ -40,6 +41,7 @@ export async function PortfolioPage() {
 
     const hasSkills = portfolio.skills.length > 0;
     const hasExperience = portfolio.experiences.length > 0;
+    const hasPersonalProjects = portfolio.personalProjects.length > 0;
     const hasAbout = portfolio.about.length > 0;
 
     return (
@@ -52,6 +54,7 @@ export async function PortfolioPage() {
                 displayName={portfolio.displayName}
                 showSkillsLink={hasSkills}
                 showExperienceLink={hasExperience}
+                showProjectsLink={hasPersonalProjects}
                 showAboutLink={hasAbout}
             />
 
@@ -66,6 +69,7 @@ export async function PortfolioPage() {
 
                 {hasSkills && <PortfolioSkills skills={portfolio.skills} />}
                 {hasExperience && <PortfolioExperience experiences={portfolio.experiences} />}
+                {hasPersonalProjects && <PortfolioProjects projects={portfolio.personalProjects} />}
                 {hasAbout && <PortfolioAbout paragraphs={portfolio.about} />}
             </main>
 

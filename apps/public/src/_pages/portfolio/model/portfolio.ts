@@ -1,5 +1,10 @@
 import type { Experience } from '@/entities/experience';
+import type { Project } from '@/entities/project';
 import type { Skill } from '@/entities/skill';
+
+export interface PortfolioExperience extends Experience {
+    readonly projects: readonly Project[];
+}
 
 export interface Portfolio {
     readonly displayName: string;
@@ -9,5 +14,6 @@ export interface Portfolio {
     readonly location: string;
     readonly avatarUrl: string;
     readonly skills: readonly Skill[];
-    readonly experiences: readonly Experience[];
+    readonly experiences: readonly PortfolioExperience[];
+    readonly personalProjects: readonly Project[];
 }

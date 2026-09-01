@@ -35,6 +35,7 @@ describe('Получение кэшированного портфолио', () 
             avatarUrl: null,
             skills: [],
             experiences: [],
+            personalProjects: [],
         };
         fetchPortfolioMock.mockResolvedValue(portfolio);
 

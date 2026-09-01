@@ -33,6 +33,18 @@ const portfolio: Portfolio = {
             endedAt: null,
             sortOrder: 1,
             period: '2024 — сейчас',
+            projects: [
+                {
+                    id: 'work-project',
+                    experienceId: 'current-experience',
+                    title: 'Рабочий проект',
+                    description: 'Внутренняя платформа.',
+                    url: 'https://example.com/work',
+                    repositoryUrl: null,
+                    sortOrder: 1,
+                    skills: [{ name: 'GraphQL' }],
+                },
+            ],
         },
         {
             id: 'past-experience',
@@ -44,6 +56,29 @@ const portfolio: Portfolio = {
             endedAt: '2024-01-01T00:00:00.000Z',
             sortOrder: 2,
             period: '2022 — 2024',
+            projects: [],
+        },
+    ],
+    personalProjects: [
+        {
+            id: 'second-personal-project',
+            experienceId: null,
+            title: 'Второй личный проект',
+            description: 'Второй в порядке backend.',
+            url: null,
+            repositoryUrl: null,
+            sortOrder: 2,
+            skills: [],
+        },
+        {
+            id: 'first-personal-project',
+            experienceId: null,
+            title: 'Первый личный проект',
+            description: 'Первый по sortOrder, но второй в ответе.',
+            url: 'https://example.com/personal',
+            repositoryUrl: 'https://github.com/example/personal',
+            sortOrder: 1,
+            skills: [{ name: 'Next.js' }, { name: 'TypeScript' }],
         },
     ],
 };
@@ -57,7 +92,9 @@ describe('Страница портфолио', () => {
         render(await PortfolioPage());
 
         const timeline = screen.getByRole('list', { name: 'Опыт работы' });
-        const entries = within(timeline).getAllByRole('article');
+        const entries = within(timeline).getAllByRole('article', {
+            name: /Developer ·/u,
+        });
 
         expect(entries).toHaveLength(2);
         expect(entries[0]).toHaveAccessibleName('Fullstack Developer · Product team');
@@ -92,6 +129,8 @@ describe('Страница портфолио', () => {
         expect(screen.getByRole('list', { name: 'Навыки' })).toHaveTextContent('TypeScriptReact');
         expect(screen.getByRole('heading', { level: 2, name: 'Опыт' })).toBeVisible();
         expect(screen.getByRole('link', { name: 'Опыт' })).toHaveAttribute('href', '#experience');
+        expect(screen.getByRole('heading', { level: 2, name: 'Личные проекты' })).toBeVisible();
+        expect(screen.getByRole('link', { name: 'Проекты' })).toHaveAttribute('href', '#projects');
         expect(screen.getByRole('heading', { level: 2, name: 'Обо мне' })).toBeVisible();
         expect(screen.getByText(portfolio.about[0])).toBeVisible();
         expect(screen.getByRole('contentinfo')).toHaveTextContent(portfolio.location);
@@ -103,6 +142,7 @@ describe('Страница портфолио', () => {
             about: [],
             skills: [],
             experiences: [],
+            personalProjects: [],
         });
 
         render(await PortfolioPage());
@@ -110,9 +150,66 @@ describe('Страница портфолио', () => {
         expect(screen.queryByRole('heading', { name: 'Навыки' })).not.toBeInTheDocument();
         expect(screen.queryByRole('heading', { name: 'Обо мне' })).not.toBeInTheDocument();
         expect(screen.queryByRole('heading', { name: 'Опыт' })).not.toBeInTheDocument();
+        expect(screen.queryByRole('heading', { name: 'Личные проекты' })).not.toBeInTheDocument();
         expect(screen.queryByRole('link', { name: 'Навыки' })).not.toBeInTheDocument();
         expect(screen.queryByRole('link', { name: 'Обо мне' })).not.toBeInTheDocument();
         expect(screen.queryByRole('link', { name: 'Опыт' })).not.toBeInTheDocument();
+        expect(screen.queryByRole('link', { name: 'Проекты' })).not.toBeInTheDocument();
+    });
+
+    it('разделяет рабочие и личные проекты и сохраняет порядок backend', async () => {
+        render(await PortfolioPage());
+
+        const experience = screen.getByRole('article', {
+            name: 'Fullstack Developer · Product team',
+        });
+        expect(within(experience).getByRole('heading', { name: 'Рабочий проект' })).toBeVisible();
+
+        const personalProjects = screen.getByRole('list', { name: 'Личные проекты' });
+        const cards = within(personalProjects).getAllByRole('article');
+
+        expect(cards[0]).toHaveAccessibleName('Второй личный проект');
+        expect(cards[1]).toHaveAccessibleName('Первый личный проект');
+        const demoLink = within(cards[1]).getByRole('link', {
+            name: 'Демо: Первый личный проект',
+        });
+        expect(demoLink).toHaveAttribute('href', 'https://example.com/personal');
+        expect(demoLink).not.toHaveAttribute('target');
+        expect(
+            within(cards[1]).getByRole('link', { name: 'Репозиторий: Первый личный проект' }),
+        ).toHaveAttribute('href', 'https://github.com/example/personal');
+        expect(within(cards[0]).queryByRole('link')).not.toBeInTheDocument();
+        expect(within(cards[0]).queryByRole('list')).not.toBeInTheDocument();
+    });
+
+    it('не создаёт личную секцию и ссылку на неё только для рабочих проектов', async () => {
+        getPortfolioMock.mockResolvedValue({ ...portfolio, personalProjects: [] });
+
+        render(await PortfolioPage());
+
+        expect(screen.getByRole('heading', { name: 'Рабочий проект' })).toBeVisible();
+        expect(screen.queryByRole('heading', { name: 'Личные проекты' })).not.toBeInTheDocument();
+        expect(screen.queryByRole('link', { name: 'Проекты' })).not.toBeInTheDocument();
+        expect(screen.getByRole('link', { name: 'Опыт' })).toHaveAttribute('href', '#experience');
+    });
+
+    it('считает профиль только с личным проектом заполненным', async () => {
+        getPortfolioMock.mockResolvedValue({
+            displayName: '',
+            headline: '',
+            heroSummary: '',
+            about: [],
+            location: '',
+            avatarUrl: '',
+            skills: [],
+            experiences: [],
+            personalProjects: [portfolio.personalProjects[0]],
+        });
+
+        render(await PortfolioPage());
+
+        expect(screen.getByRole('heading', { name: 'Личные проекты' })).toBeVisible();
+        expect(screen.queryByText('Профиль пока не заполнен')).not.toBeInTheDocument();
     });
 
     it('считает профиль с опытом заполненным', async () => {
@@ -152,6 +249,7 @@ describe('Страница портфолио', () => {
             avatarUrl: '',
             skills: [],
             experiences: [],
+            personalProjects: [],
         });
 
         render(await PortfolioPage());

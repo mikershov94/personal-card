@@ -1,6 +1,7 @@
 import Image from 'next/image';
 
-import styles from '../portfolio-page.module.css';
+import layoutStyles from '../portfolio-layout/portfolio-layout.module.css';
+import styles from './portfolio-hero.module.css';
 
 interface PortfolioHeroProps {
     readonly displayName: string;
@@ -18,7 +19,7 @@ export function PortfolioHero({
     avatarUrl,
 }: PortfolioHeroProps) {
     return (
-        <section className={`${styles.inner} ${styles.hero}`} aria-labelledby="profile-title">
+        <section className={`${layoutStyles.inner} ${styles.hero}`} aria-labelledby="profile-title">
             <div>
                 <p className={styles.displayName}>{displayName}</p>
                 <h1 id="profile-title">{headline}</h1>
