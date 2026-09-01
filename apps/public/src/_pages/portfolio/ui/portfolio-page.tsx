@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { getPortfolio, type Portfolio, PortfolioNotFoundError } from '@/entities/portfolio';
 
 import styles from './portfolio-page.module.css';
+import { Section } from '@/shared/ui';
 
 export async function PortfolioPage() {
     let portfolio: Portfolio;
@@ -85,43 +86,23 @@ export async function PortfolioPage() {
                 </section>
 
                 {hasSkills && (
-                    <section
-                        className={`${styles.inner} ${styles.section}`}
-                        id="skills"
-                        aria-labelledby="skills-title"
-                    >
-                        <div className={styles.sectionHeading}>
-                            <span className={styles.sectionIndex} aria-hidden="true">
-                                01
-                            </span>
-                            <h2 id="skills-title">Навыки</h2>
-                        </div>
+                    <Section id="skills" header="Навыки">
                         <ul className={styles.skills} aria-label="Навыки">
                             {portfolio.skills.map((skill) => (
                                 <li key={skill.name}>{skill.name}</li>
                             ))}
                         </ul>
-                    </section>
+                    </Section>
                 )}
 
                 {hasAbout && (
-                    <section
-                        className={`${styles.inner} ${styles.section}`}
-                        id="about"
-                        aria-labelledby="about-title"
-                    >
-                        <div className={styles.sectionHeading}>
-                            <span className={styles.sectionIndex} aria-hidden="true">
-                                {hasSkills ? '02' : '01'}
-                            </span>
-                            <h2 id="about-title">Обо мне</h2>
-                        </div>
+                    <Section id="about" header="Обо мне">
                         <div className={styles.about}>
                             {portfolio.about.map((paragraph) => (
                                 <p key={paragraph}>{paragraph}</p>
                             ))}
                         </div>
-                    </section>
+                    </Section>
                 )}
             </main>
 
