@@ -23,6 +23,9 @@
 - Единственная публичная точка входа slice находится в его корневом `index.ts`. Внешние
   потребители импортируют slice через alias и этот public API, например
   `@/_pages/portfolio` или `@/entities/portfolio`.
+- Когда общий public API смешал бы server-only и client-safe модули, slice получает отдельный
+  runtime-entrypoint, например `client.ts`. Client Component импортирует только client-entrypoint;
+  корневой `index.ts` не реэкспортирует через себя server-only и client-safe графы одновременно.
 - Промежуточные barrel-файлы вроде `ui/index.ts` не создаются, если сегмент не представляет
   самостоятельный публичный API. Корневой `index.ts` экспортирует нужный файл напрямую.
 - Файлы внутри одного slice используют прямые относительные импорты. Импорт собственного slice
