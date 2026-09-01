@@ -108,15 +108,14 @@ CI выполняет проверки только для затронутых 
 
 - `api-checks` генерирует Prisma Client, проверяет форматирование, ESLint и типы API, запускает
   unit- и e2e-тесты, затем выполняет API production build;
-- `public-checks` проверяет форматирование, ESLint и типы public, запускает frontend-тесты, затем
-  выполняет production smoke-check с `next build` и `next start`;
+- `public-checks` проверяет форматирование, ESLint и типы public, затем запускает frontend-тесты;
 - при изменении общих workspace/tooling-файлов запускаются обе job;
 - изменение только документации не запускает проверки приложений.
 
-Production build, Next.js runtime cache и on-demand ревалидация frontend проверяются HTTP
-smoke-check с локальным GraphQL contract stub. Он запускается в `public-checks` и доступен локально
-как `pnpm smoke:public`. Проверка не требует browser runner и не заменяет ручную проверку
-responsive, zoom и keyboard navigation.
+Production build, `next start`, Next.js runtime cache и on-demand ревалидация frontend проверяются
+вручную перед deployment. `public-checks` не обращается к внешнему GraphQL API и не подменяет его
+локальным contract stub. Browser runner и отдельный production smoke-тест для этого не
+используются.
 
 Локальные полные команды сохраняют проверку всего монорепозитория: `pnpm pre-commit:check`
 охватывает оба приложения, а API e2e отдельно запускаются через `pnpm test:e2e --runInBand`.

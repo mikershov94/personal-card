@@ -52,10 +52,9 @@ Endpoint не принимает tag от клиента. `REVALIDATION_SECRET` 
 
 ```shell
 pnpm pre-commit:check:public
-pnpm smoke:public
 ```
 
-Первая команда проверяет форматирование, ESLint, типы и unit/component tests. Smoke-check поднимает
-локальный GraphQL contract stub, выполняет production build, запускает `next start` и проверяет
-cache hit, отказ с `401`, успешную ревалидацию и stale-on-error. Responsive, zoom и keyboard
-navigation проверяются вручную в браузере.
+Команда проверяет форматирование, ESLint, типы и unit/component tests. Production build с реальным
+GraphQL API, запуск через `next start`, cache hit, отказ с `401`, успешная ревалидация и
+stale-on-error проверяются вручную перед deployment. Responsive, zoom и keyboard navigation также
+проверяются вручную в браузере.

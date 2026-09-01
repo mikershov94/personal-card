@@ -516,11 +516,11 @@ pnpm format:check:public
 pnpm lint:public
 pnpm typecheck:public
 pnpm test:public
-pnpm smoke:public
 ```
 
-`public-checks` выполняет frontend-тесты и production smoke-check с локальным GraphQL contract
-stub. Smoke-check включает `next build`, запуск через `next start` и проверку on-demand ISR.
+`public-checks` выполняет frontend-тесты, но не запускает production build или runtime smoke-check.
+`next build`, запуск через `next start` и on-demand ISR проверяются вручную с реальным GraphQL API
+перед deployment.
 
 ## Стратегия веток и этапы реализации
 
