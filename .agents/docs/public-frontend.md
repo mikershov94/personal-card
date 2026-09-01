@@ -87,6 +87,25 @@ Next.js page / metadata
 - Семантика и условия отображения покрываются component tests; responsive, zoom, keyboard
   navigation, focus, contrast и горизонтальный overflow проверяются вручную в браузере.
 
+## Projects codepath
+
+- `_pages/portfolio` запрашивает личные `Profile.projects` и рабочие
+  `Profile.experiences[].projects` в составе единственного `getProfile`. Самостоятельная
+  readonly-модель и contract mapper принадлежат `entities/project`; вложенные project skills
+  остаются частью project read model и не импортируются из соседнего entity slice.
+- Page mapper собирает рабочие проекты с родительским experience и отображает корневую коллекцию
+  как `personalProjects`. Он проверяет соответствие `experienceId` категории и сохраняет порядок
+  projects и project skills из backend без повторной сортировки.
+- Рабочие проекты показываются внутри соответствующей записи timeline. Личные проекты образуют
+  отдельную секцию `#projects`; ссылка основной навигации существует только вместе с этой секцией.
+  Рабочие проекты без личной коллекции остаются доступны через `#experience`.
+- Nullable `url` и `repositoryUrl` создают действия «Демо» и «Репозиторий» только при наличии
+  значения. Пустые project skills, actions и коллекции не создают пустую разметку. Личный проект
+  считается содержимым профиля при выборе общего empty state.
+- Семантика, разделение категорий, порядок, nullable-поля и условная навигация покрываются mapper,
+  fetch и component tests. Responsive, zoom, keyboard navigation, focus, contrast и
+  горизонтальный overflow проверяются вручную в браузере.
+
 ## Локальная конфигурация
 
 Public загружает environment variables из единого `.env` в корне монорепозитория. Для локального
