@@ -25,6 +25,7 @@
     "db:migrate:dev": "prisma migrate dev",
     "db:migrate:deploy": "prisma migrate deploy",
     "db:migrate:e2e": "prisma migrate deploy --config prisma.e2e.config.ts",
+    "db:seed": "pnpm build && node dist/scripts/run-development-portfolio-seed.js",
     "db:studio": "prisma studio"
   },
   "dependencies": {

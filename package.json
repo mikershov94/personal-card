@@ -28,6 +28,7 @@
         "db:e2e:up": "docker compose -f compose.e2e.yaml up -d --wait",
         "db:e2e:down": "docker compose -f compose.e2e.yaml down -v",
         "db:migrate:e2e": "pnpm --filter api db:migrate:e2e",
+        "db:seed": "pnpm --filter api db:seed",
         "test": "pnpm test:api && pnpm test:public",
         "test:api": "pnpm --filter api test",
         "test:public": "pnpm --filter public test",
