@@ -13,9 +13,9 @@ repository.
 Before proposing or changing code:
 
 1. Read the root `AGENTS.md`.
-2. Read `ai-docs/architecture.md`, `ai-docs/testing.md`, and
-   `ai-docs/feature-workflow.md` completely.
-3. Read `ai-docs/code-style.md` when creating or editing TypeScript.
+2. Read `.agents/docs/architecture.md`, `.agents/docs/testing.md`, and
+   `.agents/docs/feature-workflow.md` completely.
+3. Read `.agents/docs/code-style.md` when creating or editing TypeScript.
 4. Inspect the target module and one comparable existing module. Prefer `inquiries` for a small
    create flow and `portfolio` for read/write profile flows.
 5. Inspect the current Prisma schema, module registration, tests, scripts, and Git status relevant
@@ -107,7 +107,7 @@ changed files, and exact verification command, then stop for user review.
 ## Verify proportionally
 
 Run the narrowest relevant test during a TDD cycle, then expand verification before handoff.
-For a completed feature, use the repository commands documented in `ai-docs/testing.md`, including
+For a completed feature, use the repository commands documented in `.agents/docs/testing.md`, including
 unit tests, e2e tests, formatting, linting, typecheck, and build.
 
 Do not run `git add`, `git commit`, or `git push`. The user performs all staging and Git writes.

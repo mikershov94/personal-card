@@ -52,15 +52,15 @@
 
 Перед работой прочитать только релевантные задаче документы:
 
-- [Архитектура проекта](ai-docs/architecture.md) — монорепозиторий, backend-слои, Prisma и
+- [Архитектура проекта](.agents/docs/architecture.md) — монорепозиторий, backend-слои, Prisma и
   открытые решения.
-- [Стиль кода](ai-docs/code-style.md) — TypeScript, именование, ESLint, Prettier и VS Code.
-- [Тестирование](ai-docs/testing.md) — TDD, unit/e2e и команды проверок.
-- [Процесс разработки](ai-docs/development-workflow.md) — планы, ветки, коммиты, PR и
+- [Стиль кода](.agents/docs/code-style.md) — TypeScript, именование, ESLint, Prettier и VS Code.
+- [Тестирование](.agents/docs/testing.md) — TDD, unit/e2e и команды проверок.
+- [Процесс разработки](.agents/docs/development-workflow.md) — планы, ветки, коммиты, PR и
   рефакторинг.
-- [Public frontend](ai-docs/public-frontend.md) — FSD-границы, серверный read path и безопасная
+- [Public frontend](.agents/docs/public-frontend.md) — FSD-границы, серверный read path и безопасная
   on-demand ревалидация.
-- [Реализация backend-фич](ai-docs/feature-workflow.md) — последовательность слоёв и Definition
+- [Реализация backend-фич](.agents/docs/feature-workflow.md) — последовательность слоёв и Definition
   of Done.
 
 ## Проектные skills
@@ -70,4 +70,4 @@
 
 Если в ходе принятой фичи появилось устойчивое соглашение или существенный codepath, после
 завершения блока предложить обновление соответствующей заметки. `AGENTS.md` сохранять короткой
-входной точкой; подробные процедуры размещать в `ai-docs`.
+входной точкой; подробные процедуры размещать в `.agents/docs`.
