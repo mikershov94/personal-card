@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { Portfolio } from '@/entities/portfolio';
 
-import { createPortfolioMetadata } from './create-portfolio-metadata';
+import { createPortfolioMetadata } from './create-protfolio-metadata/create-portfolio-metadata';
 
 const portfolio: Portfolio = {
     displayName: 'Михаил Ершов',
