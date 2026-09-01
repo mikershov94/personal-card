@@ -1,0 +1,105 @@
+.form {
+    display: grid;
+    gap: 1rem;
+}
+
+.field {
+    display: grid;
+    gap: 0.45rem;
+}
+
+.field label {
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.field input,
+.field textarea {
+    width: 100%;
+    min-height: 2.9rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0.75rem;
+    padding: 0.75rem 0.85rem;
+    background: var(--color-background);
+    color: var(--color-text);
+}
+
+.field textarea {
+    min-height: 8rem;
+    resize: vertical;
+}
+
+.field [aria-invalid='true'] {
+    border-color: currentcolor;
+    box-shadow: 0 0 0 1px currentcolor;
+}
+
+.fieldError {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+}
+
+.result {
+    grid-column: 1 / -1;
+    border-left: 0.25rem solid currentcolor;
+    padding: 0.75rem 1rem;
+    background: var(--color-background);
+}
+
+.result p,
+.result ul {
+    margin-block: 0;
+}
+
+.result ul {
+    padding-left: 1.25rem;
+}
+
+.error {
+    color: var(--color-text);
+}
+
+.success {
+    color: var(--color-text);
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.actions button {
+    min-height: 2.9rem;
+    border: 1px solid var(--color-text);
+    border-radius: var(--radius-pill);
+    padding: 0.65rem 1rem;
+    background: var(--color-text);
+    color: var(--color-background);
+    cursor: pointer;
+}
+
+.actions button:disabled {
+    cursor: wait;
+    opacity: 0.65;
+}
+
+.actions p {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 0.86rem;
+}
+
+@media (min-width: 40rem) {
+    .form {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .wide,
+    .result,
+    .actions {
+        grid-column: 1 / -1;
+    }
+}

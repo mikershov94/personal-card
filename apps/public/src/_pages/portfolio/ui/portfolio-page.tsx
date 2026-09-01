@@ -3,6 +3,7 @@ import { PortfolioNotFoundError } from '../api/graphql/portfolio-errors';
 import { isPortfolioEmpty } from '../lib/is-portfolio-empty/is-portfolio-empty';
 import type { Portfolio } from '../model/portfolio';
 import { PortfolioAbout } from './portfolio-about/portfolio-about';
+import { PortfolioContact } from './portfolio-contact/portfolio-contact';
 import { PortfolioExperience } from './portfolio-experience/portfolio-experience';
 import { PortfolioFooter } from './portfolio-footer/portfolio-footer';
 import { PortfolioHeader } from './portfolio-header/portfolio-header';
@@ -71,6 +72,7 @@ export async function PortfolioPage() {
                 {hasExperience && <PortfolioExperience experiences={portfolio.experiences} />}
                 {hasPersonalProjects && <PortfolioProjects projects={portfolio.personalProjects} />}
                 {hasAbout && <PortfolioAbout paragraphs={portfolio.about} />}
+                <PortfolioContact />
             </main>
 
             <PortfolioFooter displayName={portfolio.displayName} location={portfolio.location} />

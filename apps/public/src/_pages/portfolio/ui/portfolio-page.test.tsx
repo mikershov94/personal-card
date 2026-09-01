@@ -10,6 +10,9 @@ const { getPortfolioMock } = vi.hoisted(() => ({
 vi.mock('../api/get-portfolio', () => ({
     getPortfolio: getPortfolioMock,
 }));
+vi.mock('@/features/send-inquiry/client', () => ({
+    InquiryForm: () => <form aria-label="Форма обращения" />,
+}));
 
 import { PortfolioNotFoundError } from '../api/graphql/portfolio-errors';
 import { PortfolioPage } from './portfolio-page';
@@ -133,6 +136,13 @@ describe('Страница портфолио', () => {
         expect(screen.getByRole('link', { name: 'Проекты' })).toHaveAttribute('href', '#projects');
         expect(screen.getByRole('heading', { level: 2, name: 'Обо мне' })).toBeVisible();
         expect(screen.getByText(portfolio.about[0])).toBeVisible();
+        expect(screen.getByRole('heading', { level: 2, name: 'Обсудим задачу?' })).toBeVisible();
+        expect(screen.getByRole('form', { name: 'Форма обращения' })).toBeInTheDocument();
+        expect(screen.getByRole('link', { name: 'Связаться' })).toHaveAttribute('href', '#contact');
+        expect(screen.getByRole('link', { name: 'Написать мне' })).toHaveAttribute(
+            'href',
+            '#contact',
+        );
         expect(screen.getByRole('contentinfo')).toHaveTextContent(portfolio.location);
     });
 
@@ -155,6 +165,7 @@ describe('Страница портфолио', () => {
         expect(screen.queryByRole('link', { name: 'Обо мне' })).not.toBeInTheDocument();
         expect(screen.queryByRole('link', { name: 'Опыт' })).not.toBeInTheDocument();
         expect(screen.queryByRole('link', { name: 'Проекты' })).not.toBeInTheDocument();
+        expect(screen.getByRole('link', { name: 'Связаться' })).toHaveAttribute('href', '#contact');
     });
 
     it('разделяет рабочие и личные проекты и сохраняет порядок backend', async () => {
