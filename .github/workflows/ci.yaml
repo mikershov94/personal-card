@@ -188,5 +188,8 @@ jobs:
             - name: Typecheck
               run: pnpm typecheck:public
 
-            - name: Build
-              run: pnpm build:public
+            - name: Frontend tests
+              run: pnpm test:public
+
+            - name: Production smoke-check
+              run: pnpm smoke:public
