@@ -1,4 +1,4 @@
-export const GET_PROFILE_QUERY = `
+export const GET_PROFILE_QUERY = /* GraphQL */ `
     query GetProfile {
         getProfile {
             displayName
