@@ -2,7 +2,8 @@ import { MockedProvider } from '@apollo/client/testing/react';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { CREATE_INQUIRY_MUTATION } from '../api/graphql/create-inquiry.mutation';
+import { CreateInquiryDocument } from '@/shared/api/graphql/generated/graphql';
+
 import { InquiryForm } from './inquiry-form';
 
 const values = {
@@ -64,7 +65,7 @@ describe('Форма обращения', () => {
         let mutationCalled = false;
         renderForm([
             {
-                request: { query: CREATE_INQUIRY_MUTATION, variables: { input: values } },
+                request: { query: CreateInquiryDocument, variables: { input: values } },
                 result: () => {
                     mutationCalled = true;
                     return { data: { createInquiry: { id: 'inquiry-id' } } };
@@ -78,7 +79,9 @@ describe('Форма обращения', () => {
         const result = await screen.findByRole('status');
         expect(mutationCalled).toBe(true);
         expect(result).toHaveTextContent('Сообщение отправлено.');
-        expect(result).toHaveFocus();
+        await waitFor(() => {
+            expect(result).toHaveFocus();
+        });
         expect(screen.getByRole('textbox', { name: 'Имя' })).toHaveValue('');
         expect(screen.getByRole('textbox', { name: 'Сообщение' })).toHaveValue('');
     });
@@ -88,7 +91,7 @@ describe('Форма обращения', () => {
         renderForm([
             {
                 request: {
-                    query: CREATE_INQUIRY_MUTATION,
+                    query: CreateInquiryDocument,
                     variables: { input: { ...values, name: 'M' } },
                 },
                 result: unexpectedMutation,
@@ -100,7 +103,9 @@ describe('Форма обращения', () => {
 
         const alert = await screen.findByRole('alert');
         expect(unexpectedMutation).not.toHaveBeenCalled();
-        expect(alert).toHaveFocus();
+        await waitFor(() => {
+            expect(alert).toHaveFocus();
+        });
         expect(screen.getByRole('link', { name: /Имя должно содержать/ })).toHaveAttribute(
             'href',
             '#inquiry-name',
@@ -114,7 +119,7 @@ describe('Форма обращения', () => {
         renderForm([
             {
                 request: {
-                    query: CREATE_INQUIRY_MUTATION,
+                    query: CreateInquiryDocument,
                     variables: { input: inputWithoutCompany },
                 },
                 result: () => {
@@ -134,7 +139,7 @@ describe('Форма обращения', () => {
     it('показывает безопасную ошибку и сохраняет значения при ошибке Apollo', async () => {
         renderForm([
             {
-                request: { query: CREATE_INQUIRY_MUTATION, variables: { input: values } },
+                request: { query: CreateInquiryDocument, variables: { input: values } },
                 error: new Error('Sensitive backend message'),
             },
         ]);
@@ -152,7 +157,7 @@ describe('Форма обращения', () => {
     it('блокирует повторную отправку во время pending', async () => {
         renderForm([
             {
-                request: { query: CREATE_INQUIRY_MUTATION, variables: { input: values } },
+                request: { query: CreateInquiryDocument, variables: { input: values } },
                 delay: 100,
                 result: { data: { createInquiry: { id: 'inquiry-id' } } },
             },
@@ -170,7 +175,7 @@ describe('Форма обращения', () => {
     it('считает ответ без id ошибкой контракта и сохраняет значения', async () => {
         renderForm([
             {
-                request: { query: CREATE_INQUIRY_MUTATION, variables: { input: values } },
+                request: { query: CreateInquiryDocument, variables: { input: values } },
                 result: { data: { createInquiry: { id: '' } } },
             },
         ]);

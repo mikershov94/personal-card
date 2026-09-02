@@ -2,8 +2,9 @@
 
 import { useMutation } from '@apollo/client/react';
 
+import { CreateInquiryDocument } from '@/shared/api/graphql/generated/graphql';
+
 import type { CreatedInquiry, InquiryInput } from '../model/inquiry';
-import { CREATE_INQUIRY_MUTATION } from './graphql/create-inquiry.mutation';
 
 interface UseSendInquiryResult {
     readonly sendInquiry: (input: InquiryInput) => Promise<CreatedInquiry>;
@@ -11,7 +12,7 @@ interface UseSendInquiryResult {
 }
 
 export function useSendInquiry(): UseSendInquiryResult {
-    const [createInquiry, { loading }] = useMutation(CREATE_INQUIRY_MUTATION);
+    const [createInquiry, { loading }] = useMutation(CreateInquiryDocument);
 
     return {
         sendInquiry: async (input: InquiryInput): Promise<CreatedInquiry> => {
