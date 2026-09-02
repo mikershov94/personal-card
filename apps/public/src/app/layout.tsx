@@ -3,6 +3,7 @@ import '@/_app/styles/globals.css';
 import type { Metadata } from 'next';
 import { Manrope, Source_Serif_4 } from 'next/font/google';
 
+import { AppApolloProvider } from '@/_app/providers/apollo-provider';
 import { serverEnv } from '@/shared/config/env';
 
 const manrope = Manrope({
@@ -23,7 +24,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<'/'>) {
     return (
         <html className={`${manrope.variable} ${sourceSerif.variable}`} lang="ru">
-            <body>{children}</body>
+            <body>
+                <AppApolloProvider>{children}</AppApolloProvider>
+            </body>
         </html>
     );
 }
