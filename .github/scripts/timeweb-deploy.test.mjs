@@ -64,7 +64,10 @@ test('запускает конкретный коммит и ожидает у�
             return;
         }
 
-        if (request.method === 'GET' && request.url === '/api/v1/apps/app-1/deploys?limit=100&offset=0') {
+        if (
+            request.method === 'GET' &&
+            request.url === '/api/v1/apps/app-1/deploys?limit=100&offset=0'
+        ) {
             deployListRequests += 1;
             sendJson(response, 200, {
                 deploys: [
@@ -120,6 +123,8 @@ test('завершается ошибкой при отказе API', async () =
 });
 
 test('завершается ошибкой по timeout', async () => {
+    let deployListRequests = 0;
+
     await assert.rejects(
         runHelper(
             (request, response) => {
@@ -130,14 +135,27 @@ test('завершается ошибкой по timeout', async () => {
                     return;
                 }
 
+                deployListRequests += 1;
                 sendJson(response, 200, {
-                    deploys: [{ id: 'deploy-3', commit_sha: commitSha, status: 'building_code' }],
+                    deploys: [{ id: 'deploy-3', commit_sha: commitSha, status: 'prepare' }],
                 });
             },
-            { TIMEWEB_DEPLOY_TIMEOUT_MS: '30' },
+            {
+                TIMEWEB_DEPLOY_TIMEOUT_MS: '40',
+                TIMEWEB_PROGRESS_LOG_INTERVAL_MS: '1',
+            },
         ),
         (error) => {
-            assert.match(error.stderr, /Timed out waiting for Timeweb deploy deploy-3/);
+            const progressMessages = error.stdout.match(
+                /Timeweb deploy deploy-3 status: prepare \(elapsed \d+ms\)\./g,
+            );
+
+            assert.ok(deployListRequests > 1);
+            assert.ok(progressMessages && progressMessages.length > 1);
+            assert.match(
+                error.stderr,
+                /Timed out waiting for Timeweb deploy deploy-3 after \d+ms\. Last status: prepare\./,
+            );
             return true;
         },
     );
