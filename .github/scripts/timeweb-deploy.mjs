@@ -1,5 +1,6 @@
 const DEFAULT_API_URL = 'https://api.timeweb.cloud';
 const DEFAULT_POLL_INTERVAL_MS = 10_000;
+const DEFAULT_PROGRESS_LOG_INTERVAL_MS = 60_000;
 const DEFAULT_TIMEOUT_MS = 20 * 60_000;
 const REQUEST_TIMEOUT_MS = 30_000;
 
@@ -80,7 +81,14 @@ async function deploy() {
         'TIMEWEB_POLL_INTERVAL_MS',
         DEFAULT_POLL_INTERVAL_MS,
     );
-    const timeoutMs = positiveIntegerEnvironmentVariable('TIMEWEB_DEPLOY_TIMEOUT_MS', DEFAULT_TIMEOUT_MS);
+    const progressLogIntervalMs = positiveIntegerEnvironmentVariable(
+        'TIMEWEB_PROGRESS_LOG_INTERVAL_MS',
+        DEFAULT_PROGRESS_LOG_INTERVAL_MS,
+    );
+    const timeoutMs = positiveIntegerEnvironmentVariable(
+        'TIMEWEB_DEPLOY_TIMEOUT_MS',
+        DEFAULT_TIMEOUT_MS,
+    );
 
     if (!/^[0-9a-f]{40}$/.test(commitSha)) {
         throw new Error('COMMIT_SHA must be a full 40-character Git commit SHA.');
@@ -105,8 +113,10 @@ async function deploy() {
     }
 
     const deployId = String(createdDeploy.id);
-    const deadline = Date.now() + timeoutMs;
+    const startedAt = Date.now();
+    const deadline = startedAt + timeoutMs;
     let previousStatus;
+    let lastProgressLogAt = 0;
 
     console.log(`Started Timeweb deploy ${deployId} for commit ${commitSha}.`);
 
@@ -130,10 +140,14 @@ async function deploy() {
         }
 
         const status = currentDeploy.status;
+        const now = Date.now();
 
-        if (status !== previousStatus) {
-            console.log(`Timeweb deploy ${deployId} status: ${status ?? 'unknown'}.`);
+        if (status !== previousStatus || now - lastProgressLogAt >= progressLogIntervalMs) {
+            console.log(
+                `Timeweb deploy ${deployId} status: ${status ?? 'unknown'} (elapsed ${now - startedAt}ms).`,
+            );
             previousStatus = status;
+            lastProgressLogAt = now;
         }
 
         if (status === 'success') {
@@ -148,7 +162,10 @@ async function deploy() {
         await sleep(pollIntervalMs);
     }
 
-    throw new Error(`Timed out waiting for Timeweb deploy ${deployId}.`);
+    throw new Error(
+        `Timed out waiting for Timeweb deploy ${deployId} after ${Date.now() - startedAt}ms. ` +
+            `Last status: ${previousStatus ?? 'unknown'}.`,
+    );
 }
 
 deploy().catch((error) => {
