@@ -1,0 +1,180 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type AuthPayloadDto {
+  accessToken: String!
+}
+
+input CreateExperienceInput {
+  company: String!
+  description: String
+  endedAt: DateTime
+  location: String
+  position: String!
+  sortOrder: Int
+  startedAt: DateTime!
+}
+
+input CreateInquiryInput {
+  company: String
+  email: String!
+  message: String!
+  name: String!
+}
+
+input CreateProfileInput {
+  avatarUrl: String!
+  displayName: String!
+  headline: String!
+  location: String!
+  summary: String!
+}
+
+input CreateProjectInput {
+  description: String!
+  experienceId: ID
+  repositoryUrl: String
+  sortOrder: Int
+  title: String!
+  url: String
+}
+
+input CreateSkillInput {
+  name: String!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Experience {
+  company: String!
+  createdAt: DateTime!
+  description: String
+  endedAt: DateTime
+  id: ID!
+  location: String
+  position: String!
+  projects: [Project!]!
+  sortOrder: Float!
+  startedAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type Inquiry {
+  company: String
+  createdAt: DateTime!
+  email: String!
+  id: ID!
+  message: String!
+  name: String!
+  updatedAt: DateTime!
+}
+
+input LoginInput {
+  password: String!
+  username: String!
+}
+
+type Mutation {
+  attachSkillToProfile(skillId: ID!, sortOrder: Int = 0): Boolean!
+  attachSkillToProject(projectId: ID!, skillId: ID!, sortOrder: Int = 0): Boolean!
+  createExperience(input: CreateExperienceInput!): Experience!
+  createInquiry(input: CreateInquiryInput!): Inquiry!
+  createProfile(input: CreateProfileInput!): Profile!
+  createProject(input: CreateProjectInput!): Project!
+  createSkill(input: CreateSkillInput!): Skill!
+  deleteExperience(id: ID!): Boolean!
+  deleteProfile: Boolean!
+  deleteProject(id: ID!): Boolean!
+  deleteSkill(id: ID!): Boolean!
+  detachSkillFromProfile(skillId: ID!): Boolean!
+  detachSkillFromProject(projectId: ID!, skillId: ID!): Boolean!
+  login(input: LoginInput!): AuthPayloadDto!
+  updateExperience(id: ID!, input: UpdateExperienceInput!): Experience!
+  updateProfile(input: UpdateProfileInput!): Profile!
+  updateProject(id: ID!, input: UpdateProjectInput!): Project!
+  updateSkill(id: ID!, input: UpdateSkillInput!): Skill!
+}
+
+type Profile {
+  avatarUrl: String!
+  createdAt: DateTime!
+  displayName: String!
+  experiences: [Experience!]!
+  headline: String!
+  id: ID!
+  location: String!
+  projects: [Project!]!
+  skills: [ProfileSkill!]!
+  summary: String!
+  updatedAt: DateTime!
+}
+
+type ProfileSkill {
+  skill: Skill!
+  sortOrder: Int!
+}
+
+type Project {
+  createdAt: DateTime!
+  description: String!
+  experienceId: ID
+  id: ID!
+  repositoryUrl: String
+  skills: [ProjectSkill!]!
+  sortOrder: Int!
+  title: String!
+  updatedAt: DateTime!
+  url: String
+}
+
+type ProjectSkill {
+  skill: Skill!
+  sortOrder: Int!
+}
+
+type Query {
+  apiStatus: String!
+  getProfile: Profile!
+}
+
+type Skill {
+  createdAt: DateTime!
+  id: ID!
+  name: String!
+  updatedAt: DateTime!
+}
+
+input UpdateExperienceInput {
+  company: String
+  description: String
+  endedAt: DateTime
+  location: String
+  position: String
+  sortOrder: Int
+  startedAt: DateTime
+}
+
+input UpdateProfileInput {
+  avatarUrl: String
+  displayName: String
+  headline: String
+  location: String
+  summary: String
+}
+
+input UpdateProjectInput {
+  description: String
+  experienceId: ID
+  repositoryUrl: String
+  sortOrder: Int
+  title: String
+  url: String
+}
+
+input UpdateSkillInput {
+  name: String
+}

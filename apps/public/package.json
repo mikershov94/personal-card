@@ -6,6 +6,8 @@
         "dev": "next dev",
         "build": "next build",
         "start": "next start",
+        "codegen": "graphql-codegen --config codegen.ts",
+        "codegen:check": "graphql-codegen --config codegen.ts --check",
         "test": "vitest run",
         "test:watch": "vitest",
         "typecheck": "next typegen && tsc --noEmit",
@@ -13,15 +15,21 @@
         "lint:fix": "eslint \"src/**/*.{js,jsx,ts,tsx}\" \"*.config.{js,mjs,cjs,ts}\" --fix"
     },
     "dependencies": {
+        "@apollo/client": "^4.2.12",
         "@next/env": "16.3.3",
         "@t3-oss/env-nextjs": "^0.13.11",
+        "graphql": "^16.14.2",
         "next": "16.3.3",
         "react": "19.2.8",
         "react-dom": "19.2.8",
+        "rxjs": "^7.8.2",
         "server-only": "^0.0.1",
         "zod": "^4.5.4"
     },
     "devDependencies": {
+        "@graphql-codegen/cli": "^7.3.1",
+        "@graphql-codegen/client-preset": "^6.1.3",
+        "@graphql-typed-document-node/core": "^3.2.0",
         "@testing-library/jest-dom": "^7.0.1",
         "@testing-library/react": "^16.3.3",
         "@types/node": "^20",

@@ -1,3 +1,5 @@
+import type { TypedDocumentNode } from '@graphql-typed-document-node/core';
+import { parse } from 'graphql';
 import { describe, expect, it, vi } from 'vitest';
 
 import { executeGraphqlRequest } from '../execute-graphql-request';
@@ -7,6 +9,24 @@ const errorFactories = {
     createHttpError: (status: number): Error => new Error(`http:${status}`),
     createContractError: (cause?: unknown): Error => new Error('contract', { cause }),
 };
+
+interface TestQuery {
+    readonly profile: null;
+}
+
+interface TestQueryVariables {
+    readonly input: {
+        readonly name: string;
+    };
+}
+
+const TEST_QUERY: TypedDocumentNode<TestQuery, TestQueryVariables> = parse(
+    'query GetProfile($input: ProfileInput!) { profile(input: $input) { id } }',
+);
+
+const TEST_QUERY_WITHOUT_VARIABLES: TypedDocumentNode<unknown, Record<string, never>> = parse(
+    'query Test { test }',
+);
 
 describe('Выполнение GraphQL-запроса', () => {
     it('отправляет POST-запрос и возвращает проверенный GraphQL response', async () => {
@@ -20,7 +40,7 @@ describe('Выполнение GraphQL-запроса', () => {
         await expect(
             executeGraphqlRequest(
                 'http://localhost/graphql',
-                'query GetProfile { getProfile { id } }',
+                TEST_QUERY,
                 { input: { name: 'Michael' } },
                 errorFactories,
                 fetchMock,
@@ -30,7 +50,7 @@ describe('Выполнение GraphQL-запроса', () => {
             method: 'POST',
             headers: { 'content-type': 'application/json' },
             body: JSON.stringify({
-                query: 'query GetProfile { getProfile { id } }',
+                query: 'query GetProfile($input: ProfileInput!) {\n  profile(input: $input) {\n    id\n  }\n}',
                 variables: { input: { name: 'Michael' } },
             }),
         });
@@ -46,7 +66,7 @@ describe('Выполнение GraphQL-запроса', () => {
         await expect(
             executeGraphqlRequest(
                 'http://localhost/graphql',
-                'query Test { test }',
+                TEST_QUERY_WITHOUT_VARIABLES,
                 undefined,
                 errorFactories,
                 networkFetch,
@@ -55,7 +75,7 @@ describe('Выполнение GraphQL-запроса', () => {
         await expect(
             executeGraphqlRequest(
                 'http://localhost/graphql',
-                'query Test { test }',
+                TEST_QUERY_WITHOUT_VARIABLES,
                 undefined,
                 errorFactories,
                 httpFetch,
@@ -76,7 +96,7 @@ describe('Выполнение GraphQL-запроса', () => {
         await expect(
             executeGraphqlRequest(
                 'http://localhost/graphql',
-                'query Test { test }',
+                TEST_QUERY_WITHOUT_VARIABLES,
                 undefined,
                 errorFactories,
                 invalidJsonFetch,
@@ -85,7 +105,7 @@ describe('Выполнение GraphQL-запроса', () => {
         await expect(
             executeGraphqlRequest(
                 'http://localhost/graphql',
-                'query Test { test }',
+                TEST_QUERY_WITHOUT_VARIABLES,
                 undefined,
                 errorFactories,
                 invalidEnvelopeFetch,

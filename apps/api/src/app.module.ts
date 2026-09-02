@@ -1,3 +1,5 @@
+import path from 'node:path';
+
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
@@ -16,7 +18,7 @@ import { PrismaModule } from './prisma/prisma.module';
     imports: [
         GraphQLModule.forRoot<ApolloDriverConfig>({
             driver: ApolloDriver,
-            autoSchemaFile: true,
+            autoSchemaFile: path.resolve(process.cwd(), 'schema.gql'),
             sortSchema: true,
             introspection: true,
             context: ({ req }: { req: Request }) => ({ req }),

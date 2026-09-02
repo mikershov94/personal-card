@@ -23,21 +23,14 @@ export interface InquiryFormValues {
     readonly message: string;
 }
 
-export type SendInquiryResult =
-    | { readonly status: 'success'; readonly inquiry: CreatedInquiry }
-    | { readonly status: 'validation-error'; readonly fieldErrors: InquiryFieldErrors }
-    | { readonly status: 'submission-error'; readonly message: string };
-
-export type SendInquiryActionState =
+export type InquiryFormState =
     | { readonly status: 'idle' }
     | {
           readonly status: 'validation-error';
           readonly fieldErrors: InquiryFieldErrors;
-          readonly values: InquiryFormValues;
       }
     | {
           readonly status: 'submission-error';
           readonly message: string;
-          readonly values: InquiryFormValues;
       }
     | { readonly status: 'success'; readonly message: string };

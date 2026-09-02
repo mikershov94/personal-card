@@ -1,4 +1,6 @@
-export const GET_PROFILE_QUERY = `
+import { graphql } from '@/shared/api/graphql/generated';
+
+export const GET_PROFILE_QUERY = graphql(`
     query GetProfile {
         getProfile {
             displayName
@@ -54,4 +56,4 @@ export const GET_PROFILE_QUERY = `
             }
         }
     }
-`;
+`);

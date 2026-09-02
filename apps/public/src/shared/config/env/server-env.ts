@@ -36,11 +36,13 @@ export const serverEnv = createEnv({
         REVALIDATION_SECRET: z.string().trim().min(1),
     },
     client: {
+        NEXT_PUBLIC_GRAPHQL_API_URL: z.url(),
         NEXT_PUBLIC_SITE_URL: z.url(),
     },
     runtimeEnv: {
         GRAPHQL_API_URL: process.env.GRAPHQL_API_URL,
         REVALIDATION_SECRET: process.env.REVALIDATION_SECRET,
+        NEXT_PUBLIC_GRAPHQL_API_URL: process.env.NEXT_PUBLIC_GRAPHQL_API_URL,
         NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
     },
     isServer: true,

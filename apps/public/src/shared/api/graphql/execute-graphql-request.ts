@@ -1,3 +1,6 @@
+import type { TypedDocumentNode } from '@graphql-typed-document-node/core';
+import { print } from 'graphql';
+
 import type { GraphqlResponse } from './graphql-response';
 import { isGraphqlResponse } from './graphql-response.guards';
 
@@ -7,20 +10,23 @@ export interface GraphqlRequestErrorFactories {
     createContractError(cause?: unknown): Error;
 }
 
-export async function executeGraphqlRequest(
+export async function executeGraphqlRequest<TResult, TVariables>(
     graphqlApiUrl: string,
-    query: string,
-    variables: Readonly<Record<string, unknown>> | undefined,
+    document: TypedDocumentNode<TResult, TVariables>,
+    variables: TVariables | undefined,
     errorFactories: GraphqlRequestErrorFactories,
     fetchImplementation: typeof fetch = fetch,
-): Promise<GraphqlResponse> {
+): Promise<GraphqlResponse<TResult>> {
     let response: Response;
 
     try {
         response = await fetchImplementation(graphqlApiUrl, {
             method: 'POST',
             headers: { 'content-type': 'application/json' },
-            body: JSON.stringify({ query, ...(variables === undefined ? {} : { variables }) }),
+            body: JSON.stringify({
+                query: print(document),
+                ...(variables === undefined ? {} : { variables }),
+            }),
         });
     } catch (error: unknown) {
         throw errorFactories.createNetworkError(error);
@@ -42,5 +48,5 @@ export async function executeGraphqlRequest(
         throw errorFactories.createContractError();
     }
 
-    return payload;
+    return payload as GraphqlResponse<TResult>;
 }

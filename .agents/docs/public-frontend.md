@@ -79,29 +79,44 @@ Next.js page / metadata
 
 ## Inquiry codepath
 
-Публичная форма обращения сохраняет серверную границу:
+Публичная форма обращения использует отдельный browser-side GraphQL runtime:
 
 ```text
 PortfolioPage -> PortfolioContact -> InquiryForm (Client Component)
-  -> sendInquiry (Server Action) -> submitInquiry -> createInquiry GraphQL mutation
+  -> useInquiryFormSubmission -> useSendInquiry -> Apollo Client -> GraphQL API
 ```
 
-- `features/send-inquiry/client.ts` экспортирует только client-safe UI. Server Action, server env и
-  GraphQL transport не проходят через этот entrypoint в клиентский граф.
-- Server Action извлекает из `FormData` только известные поля. Общая Zod-схема повторно проверяет
-  недоверенные данные и нормализует пустой `company` как отсутствие необязательного значения.
-- Validation errors возвращаются как ошибки конкретных полей. Ожидаемые network, HTTP, GraphQL и
-  contract errors преобразуются в безопасное submission-состояние без сообщения backend.
-- `useActionState` управляет validation, submission, success и pending-состояниями. Значения формы
-  сохраняются после ошибки и очищаются только после успешной отправки; итоговое состояние получает
-  фокус и объявляется доступным live region.
-- Mutation выполняется только Server Action, не инвалидирует tag `portfolio`, не вызывает
-  `revalidateTag` и не участвует в ISR.
+- `features/send-inquiry/client.ts` экспортирует только client-safe UI. Общий Apollo Client и
+  provider принадлежат `shared/api/graphql` и `_app/providers`; они не входят в server-side
+  portfolio transport.
+- `InquiryForm` извлекает из `FormData` только известные поля. Feature-owned
+  `useInquiryFormSubmission` повторно проверяет их общей Zod-схемой и нормализует пустой `company`
+  как отсутствие необязательного значения.
+- `useSendInquiry` вызывает generated `CreateInquiryDocument` через Apollo `useMutation` и
+  проверяет наличие непустого `data.createInquiry.id`. Network, GraphQL и contract failures
+  преобразуются в безопасное submission-состояние без сообщения backend.
+- Значения формы сохраняются после ошибки и очищаются только после успешной отправки; итоговое
+  состояние получает фокус и объявляется доступным live region. Во время pending кнопка отключена,
+  а повторная отправка блокируется.
+- Mutation не инвалидирует tag `portfolio`, не вызывает `revalidateTag` и не участвует в Next.js
+  cache или ISR.
 
-Автоматические проверки покрывают validation contract, GraphQL variables и response contract,
-ошибки transport/API, Server Action и доступную композицию формы. Перед deployment вручную
-проверяются реальная отправка, повтор после ошибки, keyboard/focus flow, responsive layout, zoom
-200% и отсутствие горизонтального overflow.
+Автоматические проверки покрывают validation contract, GraphQL variables, response contract,
+ошибки Apollo, pending и доступную композицию формы. Перед deployment вручную проверяются реальная
+отправка и browser variables, CORS, повтор после ошибки, keyboard/focus flow, responsive layout,
+zoom 200% и отсутствие горизонтального overflow.
+
+## GraphQL Code Generator
+
+- Versioned schema snapshot находится в `apps/api/src/schema.gql` и генерируется NestJS code-first
+  конфигурацией. Frontend codegen читает snapshot локально и не требует запущенного API.
+- Исходные operations остаются у владельцев сценариев: portfolio query — в `_pages/portfolio`,
+  inquiry mutation — в `features/send-inquiry`. Механический generated-код принадлежит
+  `shared/api/graphql/generated` и не редактируется вручную.
+- После изменения schema или operation выполняется `pnpm codegen`. Команда
+  `pnpm codegen:check` проверяет актуальность generated-кода и входит в scoped pre-commit workflow.
+- Server-side portfolio сериализует generated `TypedDocumentNode` для стандартного `fetch`.
+  Browser-side inquiry передаёт generated document в Apollo `useMutation`.
 
 ## Experience codepath
 
@@ -139,8 +154,11 @@ PortfolioPage -> PortfolioContact -> InquiryForm (Client Component)
 ## Локальная конфигурация
 
 Public загружает environment variables из единого `.env` в корне монорепозитория. Для локального
-запуска нужны `GRAPHQL_API_URL`, `REVALIDATION_SECRET` и `NEXT_PUBLIC_SITE_URL`; реальные секреты
-не сохраняются в Git. Переменные окружения, заданные платформой, имеют приоритет над `.env`.
+запуска нужны server-only `GRAPHQL_API_URL`, `REVALIDATION_SECRET`, а также публичные
+`NEXT_PUBLIC_SITE_URL` и `NEXT_PUBLIC_GRAPHQL_API_URL`. API принимает browser mutation только от
+origin из валидируемого `FRONTEND_ORIGINS`; безусловный CORS wildcard не используется. Реальные
+секреты не сохраняются в Git. Переменные окружения, заданные платформой, имеют приоритет над
+`.env`.
 
 ## Безопасная ревалидация
 
@@ -160,7 +178,8 @@ Endpoint не принимает tag от клиента. `REVALIDATION_SECRET` 
 pnpm pre-commit:check:public
 ```
 
-Команда проверяет форматирование, ESLint, типы и unit/component tests. Production build с реальным
-GraphQL API, запуск через `next start`, cache hit, отказ с `401`, успешная ревалидация и
-stale-on-error проверяются вручную перед deployment. Responsive, zoom и keyboard navigation также
-проверяются вручную в браузере.
+Команда сначала проверяет актуальность generated GraphQL-кода, затем форматирование, ESLint, типы и
+unit/component tests. Production build с реальным GraphQL API, запуск через `next start`, реальная
+inquiry mutation и CORS, cache hit, отказ с `401`, успешная ревалидация и stale-on-error проверяются
+вручную перед deployment. Responsive, zoom и keyboard navigation также проверяются вручную в
+браузере.
