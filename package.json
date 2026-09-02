@@ -23,7 +23,7 @@
         "lint:public": "pnpm --filter public lint",
         "lint:fix": "pnpm --filter api lint:fix && pnpm --filter public lint:fix",
         "pre-commit:check": "pnpm pre-commit:check:api && pnpm pre-commit:check:public",
-        "pre-commit:check:api": "pnpm format:check:api && pnpm lint:api && pnpm typecheck:api && pnpm test:api",
+        "pre-commit:check:api": "pnpm codegen:check && pnpm format:check:api && pnpm lint:api && pnpm typecheck:api && pnpm test:api",
         "pre-commit:check:public": "pnpm codegen:check && pnpm format:check:public && pnpm lint:public && pnpm typecheck:public && pnpm test:public",
         "db:format": "pnpm --filter api db:format",
         "db:validate": "pnpm --filter api db:validate",
