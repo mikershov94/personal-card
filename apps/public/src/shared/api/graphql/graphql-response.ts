@@ -3,7 +3,7 @@ export interface GraphqlError {
     extensions?: Record<string, unknown>;
 }
 
-export interface GraphqlResponse {
-    data?: unknown;
+export interface GraphqlResponse<TResult = unknown> {
+    data?: TResult;
     errors?: readonly GraphqlError[];
 }

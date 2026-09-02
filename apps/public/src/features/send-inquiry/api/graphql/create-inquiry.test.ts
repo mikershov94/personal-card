@@ -1,3 +1,4 @@
+import { print } from 'graphql';
 import { describe, expect, it, vi } from 'vitest';
 
 import { createInquiry } from './create-inquiry';
@@ -36,7 +37,7 @@ describe('Создание обращения через GraphQL', () => {
         expect(fetchMock).toHaveBeenCalledWith('http://localhost/graphql', {
             method: 'POST',
             headers: { 'content-type': 'application/json' },
-            body: JSON.stringify({ query: CREATE_INQUIRY_MUTATION, variables: { input } }),
+            body: JSON.stringify({ query: print(CREATE_INQUIRY_MUTATION), variables: { input } }),
         });
     });
 

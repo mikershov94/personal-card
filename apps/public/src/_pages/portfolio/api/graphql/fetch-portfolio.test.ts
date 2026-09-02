@@ -1,3 +1,4 @@
+import { print } from 'graphql';
 import { describe, expect, it, vi } from 'vitest';
 
 import { fetchPortfolio } from './fetch-portfolio';
@@ -45,7 +46,7 @@ describe('Загрузка публичного профиля', () => {
         expect(fetchMock).toHaveBeenCalledWith('http://localhost:3000/graphql', {
             method: 'POST',
             headers: { 'content-type': 'application/json' },
-            body: JSON.stringify({ query: GET_PROFILE_QUERY }),
+            body: JSON.stringify({ query: print(GET_PROFILE_QUERY) }),
         });
     });
 
