@@ -1,25 +1,26 @@
 'use client';
 
-import { useActionState, useEffect, useRef } from 'react';
+import { type FormEvent, useEffect, useRef } from 'react';
 
-import { sendInquiry } from '../api/send-inquiry.action';
-import type { InquiryFormValues } from '../model/inquiry';
-import { INITIAL_INQUIRY_ACTION_STATE } from '../model/inquiry-form-state';
+import { useInquiryFormSubmission } from '../model/hooks/use-inquiry-form-submission';
+import { getInquiryFormValues } from '../model/inquiry-form-state';
 import { FormField } from './form-field/form-field';
 import { FormResult } from './form-result/form-result';
 import styles from './inquiry-form.module.css';
 
-const EMPTY_VALUES: InquiryFormValues = { name: '', email: '', company: '', message: '' };
-
 export function InquiryForm() {
-    const [state, formAction, isPending] = useActionState(
-        sendInquiry,
-        INITIAL_INQUIRY_ACTION_STATE,
-    );
+    const { state, isPending, submit } = useInquiryFormSubmission();
     const formRef = useRef<HTMLFormElement>(null);
     const resultRef = useRef<HTMLDivElement>(null);
-    const values = 'values' in state ? state.values : EMPTY_VALUES;
     const fieldErrors = state.status === 'validation-error' ? state.fieldErrors : {};
+
+    const handleSubmit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
+        event.preventDefault();
+
+        const values = getInquiryFormValues(new FormData(event.currentTarget));
+
+        await submit(values);
+    };
 
     useEffect(() => {
         if (state.status === 'idle') {
@@ -34,7 +35,13 @@ export function InquiryForm() {
     }, [state]);
 
     return (
-        <form ref={formRef} action={formAction} className={styles.form}>
+        <form
+            ref={formRef}
+            onSubmit={(event) => {
+                void handleSubmit(event);
+            }}
+            className={styles.form}
+        >
             {state.status === 'validation-error' && (
                 <FormResult resultRef={resultRef} tone="error" role="alert" tabIndex={-1}>
                     <p>Проверьте отмеченные поля:</p>
@@ -72,7 +79,6 @@ export function InquiryForm() {
                     required
                     minLength={2}
                     maxLength={100}
-                    defaultValue={values.name}
                     aria-invalid={fieldErrors.name ? true : undefined}
                     aria-describedby={fieldErrors.name ? 'inquiry-name-error' : undefined}
                 />
@@ -86,7 +92,6 @@ export function InquiryForm() {
                     autoComplete="email"
                     required
                     maxLength={254}
-                    defaultValue={values.email}
                     aria-invalid={fieldErrors.email ? true : undefined}
                     aria-describedby={fieldErrors.email ? 'inquiry-email-error' : undefined}
                 />
@@ -98,7 +103,6 @@ export function InquiryForm() {
                     name="company"
                     autoComplete="organization"
                     maxLength={150}
-                    defaultValue={values.company}
                     aria-invalid={fieldErrors.company ? true : undefined}
                     aria-describedby={fieldErrors.company ? 'inquiry-company-error' : undefined}
                 />
@@ -111,7 +115,6 @@ export function InquiryForm() {
                     required
                     minLength={10}
                     maxLength={2000}
-                    defaultValue={values.message}
                     aria-invalid={fieldErrors.message ? true : undefined}
                     aria-describedby={fieldErrors.message ? 'inquiry-message-error' : undefined}
                 />

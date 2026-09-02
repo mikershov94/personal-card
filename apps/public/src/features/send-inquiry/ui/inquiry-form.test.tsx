@@ -1,19 +1,8 @@
-import { cleanup, render, screen } from '@testing-library/react';
-import type { Dispatch } from 'react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { MockedProvider } from '@apollo/client/testing/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import type { SendInquiryActionState } from '../model/inquiry';
-
-const { useActionStateMock } = vi.hoisted(() => ({
-    useActionStateMock: vi.fn(),
-}));
-
-vi.mock('react', async (importOriginal) => ({
-    ...(await importOriginal<typeof import('react')>()),
-    useActionState: useActionStateMock,
-}));
-vi.mock('../api/send-inquiry.action', () => ({ sendInquiry: vi.fn() }));
-
+import { CREATE_INQUIRY_MUTATION } from '../api/graphql/create-inquiry.mutation';
 import { InquiryForm } from './inquiry-form';
 
 const values = {
@@ -23,22 +12,43 @@ const values = {
     message: 'Предлагаю обсудить сотрудничество.',
 };
 
-function setActionState(state: SendInquiryActionState, isPending = false): void {
-    useActionStateMock.mockReturnValue([state, vi.fn() as Dispatch<FormData>, isPending]);
+function renderForm(mocks: React.ComponentProps<typeof MockedProvider>['mocks'] = []): void {
+    render(
+        <MockedProvider mocks={mocks}>
+            <InquiryForm />
+        </MockedProvider>,
+    );
+}
+
+function fillForm(overrides: Partial<typeof values> = {}): void {
+    const formValues = { ...values, ...overrides };
+
+    fireEvent.change(screen.getByRole('textbox', { name: 'Имя' }), {
+        target: { value: formValues.name },
+    });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Email' }), {
+        target: { value: formValues.email },
+    });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Компания' }), {
+        target: { value: formValues.company },
+    });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Сообщение' }), {
+        target: { value: formValues.message },
+    });
+}
+
+function submitForm(): void {
+    fireEvent.submit(screen.getByRole('button', { name: 'Отправить' }).closest('form')!);
 }
 
 describe('Форма обращения', () => {
-    beforeEach(() => {
-        setActionState({ status: 'idle' });
-    });
-
     afterEach(() => {
         cleanup();
-        vi.clearAllMocks();
+        vi.restoreAllMocks();
     });
 
     it('связывает поля с подписями и HTML-ограничениями', () => {
-        render(<InquiryForm />);
+        renderForm();
 
         expect(screen.getByRole('textbox', { name: 'Имя' })).toHaveAttribute('minlength', '2');
         expect(screen.getByRole('textbox', { name: 'Имя' })).toHaveAttribute('maxlength', '100');
@@ -50,57 +60,127 @@ describe('Форма обращения', () => {
         );
     });
 
-    it('показывает связанные ошибки полей и доступную сводку', () => {
-        setActionState({
-            status: 'validation-error',
-            values,
-            fieldErrors: { email: 'Введите корректный email' },
-        });
+    it('отправляет корректные variables, очищает форму и переводит focus на результат', async () => {
+        let mutationCalled = false;
+        renderForm([
+            {
+                request: { query: CREATE_INQUIRY_MUTATION, variables: { input: values } },
+                result: () => {
+                    mutationCalled = true;
+                    return { data: { createInquiry: { id: 'inquiry-id' } } };
+                },
+            },
+        ]);
+        fillForm();
 
-        render(<InquiryForm />);
+        submitForm();
 
-        const email = screen.getByRole('textbox', { name: 'Email' });
-        expect(email).toHaveValue(values.email);
-        expect(email).toHaveAttribute('aria-invalid', 'true');
-        expect(email).toHaveAccessibleDescription('Введите корректный email');
-        expect(screen.getByRole('alert')).toHaveFocus();
-        expect(screen.getByRole('link', { name: 'Введите корректный email' })).toHaveAttribute(
-            'href',
-            '#inquiry-email',
-        );
-    });
-
-    it('сохраняет значения после ошибки отправки', () => {
-        setActionState({
-            status: 'submission-error',
-            values,
-            message: 'Не удалось отправить сообщение.',
-        });
-
-        render(<InquiryForm />);
-
-        expect(screen.getByRole('textbox', { name: 'Имя' })).toHaveValue(values.name);
-        expect(screen.getByRole('textbox', { name: 'Сообщение' })).toHaveValue(values.message);
-        expect(screen.getByRole('alert')).toHaveTextContent('Не удалось отправить сообщение.');
-    });
-
-    it('показывает подтверждение и пустые поля после успеха', () => {
-        setActionState({ status: 'success', message: 'Сообщение отправлено.' });
-
-        render(<InquiryForm />);
-
-        expect(screen.getByRole('status')).toHaveTextContent('Сообщение отправлено.');
-        expect(screen.getByRole('status')).toHaveFocus();
+        const result = await screen.findByRole('status');
+        expect(mutationCalled).toBe(true);
+        expect(result).toHaveTextContent('Сообщение отправлено.');
+        expect(result).toHaveFocus();
         expect(screen.getByRole('textbox', { name: 'Имя' })).toHaveValue('');
         expect(screen.getByRole('textbox', { name: 'Сообщение' })).toHaveValue('');
     });
 
-    it('блокирует повторную отправку во время pending', () => {
-        setActionState({ status: 'idle' }, true);
+    it('не вызывает Apollo и показывает доступную сводку для невалидных данных', async () => {
+        const unexpectedMutation = vi.fn(() => ({ data: { createInquiry: { id: 'unused' } } }));
+        renderForm([
+            {
+                request: {
+                    query: CREATE_INQUIRY_MUTATION,
+                    variables: { input: { ...values, name: 'M' } },
+                },
+                result: unexpectedMutation,
+            },
+        ]);
+        fillForm({ name: 'M' });
 
-        render(<InquiryForm />);
+        submitForm();
 
-        expect(screen.getByRole('button', { name: 'Отправляем…' })).toBeDisabled();
+        const alert = await screen.findByRole('alert');
+        expect(unexpectedMutation).not.toHaveBeenCalled();
+        expect(alert).toHaveFocus();
+        expect(screen.getByRole('link', { name: /Имя должно содержать/ })).toHaveAttribute(
+            'href',
+            '#inquiry-name',
+        );
+        expect(screen.getByRole('textbox', { name: 'Имя' })).toHaveValue('M');
+    });
+
+    it('не отправляет пустую компанию как пустую строку', async () => {
+        let mutationCalled = false;
+        const { company: _company, ...inputWithoutCompany } = values;
+        renderForm([
+            {
+                request: {
+                    query: CREATE_INQUIRY_MUTATION,
+                    variables: { input: inputWithoutCompany },
+                },
+                result: () => {
+                    mutationCalled = true;
+                    return { data: { createInquiry: { id: 'inquiry-id' } } };
+                },
+            },
+        ]);
+        fillForm({ company: '' });
+
+        submitForm();
+
+        await screen.findByRole('status');
+        expect(mutationCalled).toBe(true);
+    });
+
+    it('показывает безопасную ошибку и сохраняет значения при ошибке Apollo', async () => {
+        renderForm([
+            {
+                request: { query: CREATE_INQUIRY_MUTATION, variables: { input: values } },
+                error: new Error('Sensitive backend message'),
+            },
+        ]);
+        fillForm();
+
+        submitForm();
+
+        const alert = await screen.findByRole('alert');
+        expect(alert).toHaveTextContent('Не удалось отправить сообщение. Попробуйте ещё раз.');
+        expect(alert).not.toHaveTextContent('Sensitive backend message');
+        expect(screen.getByRole('textbox', { name: 'Имя' })).toHaveValue(values.name);
+        expect(screen.getByRole('textbox', { name: 'Сообщение' })).toHaveValue(values.message);
+    });
+
+    it('блокирует повторную отправку во время pending', async () => {
+        renderForm([
+            {
+                request: { query: CREATE_INQUIRY_MUTATION, variables: { input: values } },
+                delay: 100,
+                result: { data: { createInquiry: { id: 'inquiry-id' } } },
+            },
+        ]);
+        fillForm();
+
+        submitForm();
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: 'Отправляем…' })).toBeDisabled();
+        });
         expect(screen.getByText('Сообщение отправляется.')).toBeInTheDocument();
+    });
+
+    it('считает ответ без id ошибкой контракта и сохраняет значения', async () => {
+        renderForm([
+            {
+                request: { query: CREATE_INQUIRY_MUTATION, variables: { input: values } },
+                result: { data: { createInquiry: { id: '' } } },
+            },
+        ]);
+        fillForm();
+
+        submitForm();
+
+        expect(await screen.findByRole('alert')).toHaveTextContent(
+            'Не удалось отправить сообщение. Попробуйте ещё раз.',
+        );
+        expect(screen.getByRole('textbox', { name: 'Email' })).toHaveValue(values.email);
     });
 });

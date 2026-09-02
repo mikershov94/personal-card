@@ -1,6 +1,6 @@
-import type { InquiryFormValues, SendInquiryActionState } from './inquiry';
+import type { InquiryFormState, InquiryFormValues } from './inquiry';
 
-export const INITIAL_INQUIRY_ACTION_STATE: SendInquiryActionState = { status: 'idle' };
+export const INITIAL_INQUIRY_FORM_STATE: InquiryFormState = { status: 'idle' };
 
 export function getInquiryFormValues(formData: FormData): InquiryFormValues {
     return {
