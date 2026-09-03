@@ -15,7 +15,7 @@ export class CreateProfileDto {
 
     @Field()
     @IsString()
-    @Length(10, 400)
+    @Length(10, 1000)
     summary!: string;
 
     @Field()
