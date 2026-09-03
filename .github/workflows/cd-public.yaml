@@ -54,7 +54,7 @@ jobs:
         needs: changes
         if: needs.changes.outputs.deploy == 'true'
         runs-on: ubuntu-latest
-        timeout-minutes: 30
+        timeout-minutes: 40
         environment: production_public
         concurrency:
             group: production_public
@@ -71,6 +71,7 @@ jobs:
                   COMMIT_SHA: ${{ github.event.workflow_run.head_sha }}
                   TIMEWEB_APP_ID: ${{ vars.TIMEWEB_APP_ID }}
                   TIMEWEB_CLOUD_TOKEN: ${{ secrets.TIMEWEB_CLOUD_TOKEN }}
+                  TIMEWEB_DEPLOY_TIMEOUT_MS: 2100000
               run: node .github/scripts/timeweb-deploy.mjs
 
             - name: Check public health
