@@ -10,8 +10,8 @@ interface PortfolioProjectsProps {
 
 export function PortfolioProjects({ projects }: PortfolioProjectsProps) {
     return (
-        <Section id="projects" header="Проекты">
-            <ul className={styles.projectGrid} aria-label="Проекты">
+        <Section id="projects" header="Личные проекты">
+            <ul className={styles.projectGrid} aria-label="Личные проекты">
                 {projects.map((project, index) => (
                     <li key={project.id}>
                         <PortfolioProject
